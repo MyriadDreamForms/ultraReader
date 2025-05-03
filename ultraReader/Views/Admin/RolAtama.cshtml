@@ -1,0 +1,43 @@
+@model ultraReader.Models.DTOs.AssignRolesViewModel
+@{
+    ViewData["Title"] = "Rol Atama";
+}
+
+<div class="container mt-4">
+    <h1>Rol Atama</h1>
+    <p>
+        <a asp-action="KullaniciYonetim" class="btn btn-secondary mb-3">
+            <i class="bi bi-arrow-left"></i> Kullanıcı Yönetimine Dön
+        </a>
+    </p>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">@Model.UserName için Rol Atama</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="RolAtama" method="post">
+                <input type="hidden" asp-for="UserId" />
+                <input type="hidden" asp-for="UserName" />
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" asp-for="IsAdmin" id="isAdmin">
+                    <label class="form-check-label" for="isAdmin">
+                        Admin Rolü
+                    </label>
+                    <div class="form-text">Tüm sistem yönetimi yetkilerine sahip olur</div>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" asp-for="IsModerator" id="isModerator">
+                    <label class="form-check-label" for="isModerator">
+                        Moderatör Rolü
+                    </label>
+                    <div class="form-text">İçerik yönetimi ve yorum onaylama yetkilerine sahip olur</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Rolleri Kaydet</button>
+            </form>
+        </div>
+    </div>
+</div> 

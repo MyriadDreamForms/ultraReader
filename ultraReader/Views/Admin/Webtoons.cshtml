@@ -1,0 +1,55 @@
+@model IEnumerable<ultraReader.Models.Entities.WebtoonInfo>
+
+@{
+    ViewData["Title"] = "Webtoon Yönetimi";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Webtoon Yönetimi</h1>
+        <a href="#" class="btn btn-success">Yeni Webtoon Ekle</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Kapak</th>
+                    <th>Başlık</th>
+                    <th>Yazar</th>
+                    <th>Durum</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Any())
+                {
+                    @foreach (var webtoon in Model)
+                    {
+                        <tr>
+                            <td>
+                                <img src="~/webtoons/@webtoon.FolderName/@webtoon.CoverImage" 
+                                     class="img-thumbnail" alt="@webtoon.Title" style="max-height: 80px" />
+                            </td>
+                            <td>@webtoon.Title</td>
+                            <td>@webtoon.Author</td>
+                            <td>@webtoon.Status</td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-primary">Düzenle</a>
+                                <a href="#" class="btn btn-sm btn-danger">Sil</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center">Henüz webtoon eklenmemiş.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <a asp-controller="Admin" asp-action="Index" class="btn btn-secondary mt-3">Geri Dön</a>
+</div> 

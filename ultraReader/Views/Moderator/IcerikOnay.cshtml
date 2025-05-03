@@ -1,0 +1,205 @@
+@model IEnumerable<ultraReader.Models.Entities.WebtoonInfo>
+@{
+    ViewData["Title"] = "İçerik Onaylama";
+}
+
+<div class="container mx-auto px-4 py-6">
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-200 mb-4 md:mb-0">İçerik Onaylama</h1>
+        <a asp-action="Index" class="btn-secondary">
+            <i class="bi bi-arrow-left mr-2"></i> Moderatör Paneline Dön
+        </a>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+        <div class="bg-primary dark:bg-primary-900 text-white px-4 py-3">
+            <h5 class="font-semibold">Onay Bekleyen İçerikler</h5>
+        </div>
+        <div class="p-4">
+            @if (Model != null && Model.Any(w => !w.IsApproved))
+            {
+                <div class="overflow-x-auto">
+                    <table class="table-default">
+                        <thead class="table-header">
+                            <tr>
+                                <th class="table-header-cell">Webtoon</th>
+                                <th class="table-header-cell">Yazar</th>
+                                <th class="table-header-cell">Durum</th>
+                                <th class="table-header-cell">Eklenme Tarihi</th>
+                                <th class="table-header-cell">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-body">
+                            @foreach (var webtoon in Model.Where(w => !w.IsApproved))
+                            {
+                                <tr class="table-row">
+                                    <td class="table-cell">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 mr-3">
+                                                @if (!string.IsNullOrEmpty(webtoon.CoverImage))
+                                                {
+                                                    <img src="~/webtoons/@webtoon.FolderName/@webtoon.CoverImage" class="h-10 w-10 rounded-md object-cover" alt="@webtoon.Title" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="h-10 w-10 rounded-md bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                                        <i class="bi bi-book text-gray-400 dark:text-gray-500"></i>
+                                                    </div>
+                                                }
+                                            </div>
+                                            <div class="font-medium text-gray-900 dark:text-white">@webtoon.Title</div>
+                                        </div>
+                                    </td>
+                                    <td class="table-cell">@webtoon.Author</td>
+                                    <td class="table-cell">@webtoon.Status</td>
+                                    <td class="table-cell">@webtoon.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                    <td class="table-cell">
+                                        <div class="flex flex-wrap gap-2">
+                                            <button type="button" class="btn-info text-xs py-1 px-2 onay-ver" 
+                                                   data-id="@webtoon.Id" 
+                                                   data-title="@webtoon.Title">
+                                                <i class="bi bi-eye mr-1"></i> İncele
+                                            </button>
+                                            <button type="button" class="btn-success text-xs py-1 px-2 onay-ver" 
+                                                   data-id="@webtoon.Id" 
+                                                   data-title="@webtoon.Title"
+                                                   data-modal-toggle="onayModal_@webtoon.Id">
+                                                <i class="bi bi-check-circle mr-1"></i> Onayla
+                                            </button>
+                                            <button type="button" class="btn-danger text-xs py-1 px-2 onay-reddet" 
+                                                   data-id="@webtoon.Id" 
+                                                   data-title="@webtoon.Title"
+                                                   data-modal-toggle="reddetModal_@webtoon.Id">
+                                                <i class="bi bi-x-circle mr-1"></i> Reddet
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Onaylama Modal -->
+                                        <div id="onayModal_@webtoon.Id" 
+                                             class="fixed z-10 inset-0 overflow-y-auto hidden" 
+                                             aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                                            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                                                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+                                                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                                                <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                                                    <div class="bg-success-100 dark:bg-success-900/50 px-4 py-3 border-b border-success-200 dark:border-success-700 sm:px-6">
+                                                        <h3 class="text-lg leading-6 font-medium text-success-800 dark:text-success-200" id="modal-title">
+                                                            İçerik Onaylama
+                                                        </h3>
+                                                    </div>
+                                                    <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                                        <p class="text-gray-700 dark:text-gray-300">
+                                                            <span class="font-semibold">@webtoon.Title</span> içeriğini onaylamak istediğinize emin misiniz?
+                                                        </p>
+                                                    </div>
+                                                    <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                                        <form asp-action="IcerikOnayla" method="post">
+                                                            <input type="hidden" name="id" value="@webtoon.Id" />
+                                                            <button type="submit" class="btn-success">
+                                                                Onayla
+                                                            </button>
+                                                        </form>
+                                                        <button type="button" 
+                                                                class="mt-3 sm:mt-0 sm:mr-3 btn-secondary"
+                                                                data-modal-hide="onayModal_@webtoon.Id">
+                                                            İptal
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Reddetme Modal -->
+                                        <div id="reddetModal_@webtoon.Id" 
+                                             class="fixed z-10 inset-0 overflow-y-auto hidden" 
+                                             aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                                            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                                                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+                                                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                                                <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                                                    <div class="bg-danger-100 dark:bg-danger-900/50 px-4 py-3 border-b border-danger-200 dark:border-danger-700 sm:px-6">
+                                                        <h3 class="text-lg leading-6 font-medium text-danger-800 dark:text-danger-200" id="modal-title">
+                                                            İçerik Reddetme
+                                                        </h3>
+                                                    </div>
+                                                    <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                                        <p class="text-gray-700 dark:text-gray-300 mb-4">
+                                                            <span class="font-semibold">@webtoon.Title</span> içeriğini reddetmek istediğinize emin misiniz?
+                                                        </p>
+                                                        <div>
+                                                            <label for="reddetme-sebebi-@webtoon.Id" class="form-label">Reddetme Sebebi:</label>
+                                                            <textarea id="reddetme-sebebi-@webtoon.Id" class="form-textarea" rows="3" required></textarea>
+                                                        </div>
+                                                    </div>
+                                                    <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                                        <form id="reddetForm_@webtoon.Id" asp-action="IcerikReddet" method="post">
+                                                            <input type="hidden" name="id" value="@webtoon.Id" />
+                                                            <input type="hidden" id="hidden-reddetme-sebebi-@webtoon.Id" name="rejectReason" />
+                                                            <button type="submit" class="btn-danger reddet-btn" data-id="@webtoon.Id">
+                                                                Reddet
+                                                            </button>
+                                                        </form>
+                                                        <button type="button" 
+                                                                class="mt-3 sm:mt-0 sm:mr-3 btn-secondary"
+                                                                data-modal-hide="reddetModal_@webtoon.Id">
+                                                            İptal
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <div class="flex items-center">
+                        <i class="bi bi-info-circle mr-2"></i>
+                        <p>Onay bekleyen içerik bulunmamaktadır.</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Modal kontrolleri
+            document.querySelectorAll('[data-modal-toggle]').forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-modal-toggle');
+                    const modal = document.getElementById(targetId);
+                    if (modal) {
+                        modal.classList.remove('hidden');
+                    }
+                });
+            });
+            
+            document.querySelectorAll('[data-modal-hide]').forEach(hide => {
+                hide.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-modal-hide');
+                    const modal = document.getElementById(targetId);
+                    if (modal) {
+                        modal.classList.add('hidden');
+                    }
+                });
+            });
+            
+            // Reddetme formu işlemleri
+            document.querySelectorAll('.reddet-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const reason = document.getElementById('reddetme-sebebi-' + id).value;
+                    document.getElementById('hidden-reddetme-sebebi-' + id).value = reason;
+                });
+            });
+        });
+    </script>
+} 

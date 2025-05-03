@@ -1,0 +1,328 @@
+@model ultraReader.Models.DTOs.AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Admin Paneli";
+}
+
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-200 mb-6">Admin Paneli</h1>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+        <!-- İstatistik kartları -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary-100 dark:bg-primary-900 text-primary flex items-center justify-center">
+                    <i class="bi bi-book text-xl md:text-2xl"></i>
+                </div>
+                <div class="ml-3 md:ml-4">
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-200">@Model.TotalWebtoons</h2>
+                    <p class="text-sm md:text-base text-gray-600 dark:text-gray-400">Toplam Webtoon</p>
+                </div>
+            </div>
+            <a asp-action="WebtoonYonetim" class="text-sm text-primary dark:text-primary-400 hover:underline flex items-center">
+                <span>Webtoon Yönetimi</span>
+                <i class="bi bi-arrow-right ml-1"></i>
+            </a>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-success-100 dark:bg-success-900/50 text-success flex items-center justify-center">
+                    <i class="bi bi-people text-xl md:text-2xl"></i>
+                </div>
+                <div class="ml-3 md:ml-4">
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-200">@Model.TotalUsers</h2>
+                    <p class="text-sm md:text-base text-gray-600 dark:text-gray-400">Kullanıcı</p>
+                </div>
+            </div>
+            <a asp-action="KullaniciYonetim" class="text-sm text-success dark:text-success-light hover:underline flex items-center">
+                <span>Kullanıcı Yönetimi</span>
+                <i class="bi bi-arrow-right ml-1"></i>
+            </a>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-info-100 dark:bg-info-900/50 text-info flex items-center justify-center">
+                    <i class="bi bi-file-earmark-text text-xl md:text-2xl"></i>
+                </div>
+                <div class="ml-3 md:ml-4">
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-200">@Model.TotalChapters</h2>
+                    <p class="text-sm md:text-base text-gray-600 dark:text-gray-400">Toplam Bölüm</p>
+                </div>
+            </div>
+            <a href="#" class="text-sm text-info dark:text-info-light hover:underline flex items-center">
+                <span>İçerik Detayları</span>
+                <i class="bi bi-arrow-right ml-1"></i>
+            </a>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-warning-100 dark:bg-warning-900/50 text-warning flex items-center justify-center">
+                    <i class="bi bi-eye text-xl md:text-2xl"></i>
+                </div>
+                <div class="ml-3 md:ml-4">
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-200">@Model.TotalViews</h2>
+                    <p class="text-sm md:text-base text-gray-600 dark:text-gray-400">Toplam Görüntülenme</p>
+                </div>
+            </div>
+            <a href="#" class="text-sm text-warning dark:text-warning-light hover:underline flex items-center">
+                <span>İstatistikler</span>
+                <i class="bi bi-arrow-right ml-1"></i>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Webtoon Görüntülenme Analizi -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md mb-8 overflow-hidden">
+        <div class="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Webtoon Görüntülenme Analizi</h2>
+            <div class="flex items-center space-x-2">
+                <select id="viewsPeriod" class="form-select form-select-sm">
+                    <option value="7">Son 7 Gün</option>
+                    <option value="14">Son 14 Gün</option>
+                    <option value="30">Son 30 Gün</option>
+                </select>
+            </div>
+        </div>
+        <div class="p-4 h-64 md:h-80">
+            <canvas id="viewsChart"></canvas>
+        </div>
+    </div>
+    
+    <!-- Grafikler -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
+        <!-- Türlere Göre Webtoon Dağılımı -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden h-full">
+            <div class="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Türlere Göre Webtoon Dağılımı</h2>
+            </div>
+            <div class="p-4 h-64">
+                <canvas id="genreChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Durumlara Göre Webtoon Dağılımı -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden h-full">
+            <div class="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Durumlara Göre Webtoon Dağılımı</h2>
+            </div>
+            <div class="p-4 h-64">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Son 7 Gün Yorum İstatistikleri -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden h-full">
+            <div class="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Son 7 Gün Yorum İstatistikleri</h2>
+            </div>
+            <div class="p-4 h-64">
+                <canvas id="commentChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Son 7 Gün Kullanıcı Kayıt İstatistikleri -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden h-full">
+            <div class="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Son 7 Gün Kullanıcı Kayıtları</h2>
+            </div>
+            <div class="p-4 h-64">
+                <canvas id="userChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Son eklenen webtoonlar, sistem bilgileri ve hızlı bağlantılar -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+        <!-- Son eklenen webtoonlar -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md lg:col-span-2">
+            <div class="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Son Eklenen Webtoonlar</h2>
+                <a asp-action="YeniWebtoon" class="btn-primary-sm">
+                    <i class="bi bi-plus-circle mr-1"></i> Yeni Ekle
+                </a>
+            </div>
+            <div class="p-4">
+                @if (Model.RecentWebtoons.Any())
+                {
+                    <div class="overflow-x-auto">
+                        <table class="table-default">
+                            <thead class="table-header">
+                                <tr>
+                                    <th class="table-header-cell">Başlık</th>
+                                    <th class="table-header-cell hidden sm:table-cell">Yazar</th>
+                                    <th class="table-header-cell hidden md:table-cell">Kategori</th>
+                                    <th class="table-header-cell hidden md:table-cell">Eklenme Tarihi</th>
+                                    <th class="table-header-cell">İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody class="table-body">
+                                @foreach (var webtoon in Model.RecentWebtoons)
+                                {
+                                    <tr class="table-row">
+                                        <td class="table-cell">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 h-10 w-10 mr-3">
+                                                    @if (!string.IsNullOrEmpty(webtoon.CoverImage))
+                                                    {
+                                                        <img src="~/webtoons/@webtoon.FolderName/@webtoon.CoverImage" class="h-10 w-10 rounded-md object-cover" alt="@webtoon.Title" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="h-10 w-10 rounded-md bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                                            <i class="bi bi-book text-gray-400 dark:text-gray-500"></i>
+                                                        </div>
+                                                    }
+                                                </div>
+                                                <div>
+                                                    <div class="font-medium text-gray-900 dark:text-white">@webtoon.Title</div>
+                                                    <div class="text-xs text-gray-500 dark:text-gray-400 sm:hidden">@webtoon.Author</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="table-cell hidden sm:table-cell">@webtoon.Author</td>
+                                        <td class="table-cell hidden md:table-cell">
+                                            @if (webtoon.Genres.Any())
+                                            {
+                                                <span class="badge badge-primary">@webtoon.Genres.First()</span>
+                                                @if (webtoon.Genres.Count > 1)
+                                                {
+                                                    <span class="text-xs text-gray-500 dark:text-gray-400">+@(webtoon.Genres.Count - 1) diğer</span>
+                                                }
+                                            }
+                                        </td>
+                                        <td class="table-cell hidden md:table-cell">@webtoon.CreatedAt.ToString("dd.MM.yyyy")</td>
+                                        <td class="table-cell">
+                                            <div class="flex gap-2">
+                                                <a asp-action="WebtoonDuzenle" asp-route-id="@webtoon.Id" class="btn-primary-sm">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </a>
+                                                <a asp-action="BolumYonetim" asp-route-webtoonId="@webtoon.Id" class="btn-secondary text-xs py-1 px-2">
+                                                    <i class="bi bi-collection"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <div class="flex items-center">
+                            <i class="bi bi-info-circle mr-2"></i>
+                            <p>Henüz hiç webtoon eklenmemiş.</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        
+        <!-- Sistem Bilgileri ve Hızlı Bağlantılar -->
+        <div class="space-y-4 md:space-y-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                <div class="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Sistem Bilgileri</h2>
+                </div>
+                <div class="p-4 md:p-6">
+                    <ul class="space-y-3">
+                        <li class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Sunucu Saati:</span>
+                            <span class="text-gray-900 dark:text-gray-200 font-medium">@DateTime.Now.ToString("dd.MM.yyyy HH:mm")</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Disk Kullanımı:</span>
+                            <span class="text-gray-900 dark:text-gray-200 font-medium">@Model.DiskUsage</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Aktif Kullanıcı:</span>
+                            <span class="text-gray-900 dark:text-gray-200 font-medium">@Model.ActiveUsers</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Son Yedekleme:</span>
+                            <span class="text-gray-900 dark:text-gray-200 font-medium">@Model.LastBackup?.ToString("dd.MM.yyyy HH:mm") ?? "Yapılmadı"</span>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-4">
+                        <button type="button" class="btn-secondary w-full">
+                            <i class="bi bi-cloud-arrow-up mr-1"></i> Yedekleme Başlat
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                <div class="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Hızlı Bağlantılar</h2>
+                </div>
+                <div class="p-4">
+                    <div class="grid grid-cols-2 gap-2">
+                        <a asp-action="WebtoonYonetim" class="admin-sidebar-item admin-sidebar-item-inactive">
+                            <i class="bi bi-book mr-2"></i> Webtoonlar
+                        </a>
+                        <a asp-action="KullaniciYonetim" class="admin-sidebar-item admin-sidebar-item-inactive">
+                            <i class="bi bi-people mr-2"></i> Kullanıcılar
+                        </a>
+                        <a asp-action="YeniWebtoon" class="admin-sidebar-item admin-sidebar-item-inactive">
+                            <i class="bi bi-plus-circle mr-2"></i> Webtoon Ekle
+                        </a>
+                        <a asp-action="YoneticiEkle" class="admin-sidebar-item admin-sidebar-item-inactive">
+                            <i class="bi bi-person-plus mr-2"></i> Yönetici Ekle
+                        </a>
+                        <a href="#" class="admin-sidebar-item admin-sidebar-item-inactive">
+                            <i class="bi bi-graph-up mr-2"></i> İstatistikler
+                        </a>
+                        <a href="#" class="admin-sidebar-item admin-sidebar-item-inactive">
+                            <i class="bi bi-gear mr-2"></i> Ayarlar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="~/js/admin-charts.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Grafik verilerini model üzerinden aktarma
+            const genreData = @Html.Raw(Json.Serialize(Model.WebtoonsByGenre));
+            const statusData = @Html.Raw(Json.Serialize(Model.WebtoonsByStatus));
+            const commentData = @Html.Raw(Json.Serialize(Model.CommentsPerDay));
+            const userData = @Html.Raw(Json.Serialize(Model.NewUsersPerDay));
+            const viewsData = @Html.Raw(Json.Serialize(Model.ViewsPerDay));
+            
+            // Grafikleri oluştur
+            if (window.AdminCharts) {
+                window.AdminCharts.createGenreChart(genreData);
+                window.AdminCharts.createStatusChart(statusData);
+                window.AdminCharts.createCommentChart(commentData);
+                window.AdminCharts.createUserChart(userData);
+                window.AdminCharts.createViewsChart(viewsData);
+            }
+            
+            // Görüntülenme periyodu değiştiğinde
+            $('#viewsPeriod').change(function() {
+                const days = $(this).val();
+                // AJAX isteği ile güncellenmiş verileri al
+                $.ajax({
+                    url: '/Admin/GetViewsData',
+                    data: { days: days },
+                    success: function(data) {
+                        // Grafiği güncelle
+                        if (window.AdminCharts) {
+                            window.AdminCharts.createViewsChart(data);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+} 

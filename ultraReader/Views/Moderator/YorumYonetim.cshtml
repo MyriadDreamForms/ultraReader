@@ -1,0 +1,73 @@
+@model IEnumerable<ultraReader.Models.Entities.Comment>
+@{
+    ViewData["Title"] = "Yorum Yönetimi";
+}
+
+<div class="container mt-4">
+    <h1>Yorum Yönetimi</h1>
+    
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-@TempData["MessageType"]">
+            @TempData["Message"]
+        </div>
+    }
+    
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Onay Bekleyen Yorumlar</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Kullanıcı</th>
+                                <th>Webtoon</th>
+                                <th>Yorum</th>
+                                <th>Tarih</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var comment in Model)
+                            {
+                                <tr>
+                                    <td>@comment.UserName</td>
+                                    <td>@comment.Webtoon?.Title</td>
+                                    <td>@(comment.Content?.Length > 50 ? comment.Content.Substring(0, 50) + "..." : comment.Content)</td>
+                                    <td>@comment.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="YorumDetay" asp-route-id="@comment.Id" class="btn btn-sm btn-info">
+                                                <i class="bi bi-eye"></i> Detay
+                                            </a>
+                                            <form asp-action="YorumOnayla" asp-route-id="@comment.Id" method="post" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="bi bi-check-circle"></i> Onayla
+                                                </button>
+                                            </form>
+                                            <form asp-action="YorumSil" asp-route-id="@comment.Id" method="post" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Bu yorumu silmek istediğinize emin misiniz?')">
+                                                    <i class="bi bi-trash"></i> Sil
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    Onay bekleyen yorum bulunmamaktadır.
+                </div>
+            }
+        </div>
+    </div>
+</div> 

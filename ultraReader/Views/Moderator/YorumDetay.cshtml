@@ -1,0 +1,75 @@
+@model ultraReader.Models.Entities.Comment
+@{
+    ViewData["Title"] = "Yorum Detayı";
+}
+
+<div class="container mt-4">
+    <h1>Yorum Detayı</h1>
+    
+    <p>
+        <a asp-action="YorumYonetim" class="btn btn-secondary mb-3">
+            <i class="bi bi-arrow-left"></i> Yorum Yönetimine Dön
+        </a>
+    </p>
+    
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Yorum Bilgileri</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <label class="fw-bold">Kullanıcı Adı:</label>
+                        <p>@Model.UserName</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="fw-bold">Webtoon:</label>
+                        <p>@Model.Webtoon?.Title</p>
+                    </div>
+                    
+                    @if (!string.IsNullOrEmpty(Model.ChapterId))
+                    {
+                        <div class="mb-3">
+                            <label class="fw-bold">Bölüm:</label>
+                            <p>@Model.ChapterId</p>
+                        </div>
+                    }
+                    
+                    <div class="mb-3">
+                        <label class="fw-bold">Oluşturma Tarihi:</label>
+                        <p>@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="fw-bold">Yorum:</label>
+                        <div class="p-3 bg-light rounded">@Model.Content</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-header">
+                            <h5 class="mb-0">İşlemler</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <form asp-action="YorumOnayla" asp-route-id="@Model.Id" method="post">
+                                    <button type="submit" class="btn btn-success w-100 mb-2">
+                                        <i class="bi bi-check-circle"></i> Yorumu Onayla
+                                    </button>
+                                </form>
+                                
+                                <form asp-action="YorumSil" asp-route-id="@Model.Id" method="post">
+                                    <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Bu yorumu silmek istediğinize emin misiniz?')">
+                                        <i class="bi bi-trash"></i> Yorumu Sil
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

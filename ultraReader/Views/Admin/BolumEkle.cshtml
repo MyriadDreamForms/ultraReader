@@ -1,0 +1,72 @@
+@model ultraReader.Models.DTOs.ChapterUploadViewModel
+@{
+    ViewData["Title"] = "Bölüm Ekle";
+}
+
+<div class="container mt-4">
+    <h1>Yeni Bölüm Ekle</h1>
+    <p>
+        <a asp-action="BolumYonetim" asp-route-webtoonId="@Model.WebtoonId" class="btn btn-secondary mb-3">
+            <i class="bi bi-arrow-left"></i> Bölüm Yönetimine Dön
+        </a>
+    </p>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">@Model.WebtoonTitle - Yeni Bölüm</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="BolumEkle" method="post" enctype="multipart/form-data">
+                <input type="hidden" asp-for="WebtoonId" />
+                <input type="hidden" asp-for="WebtoonTitle" />
+                <input type="hidden" asp-for="SafeFolderName" />
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="mb-3">
+                    <label asp-for="ChapterNumber" class="form-label">Bölüm Numarası</label>
+                    <input asp-for="ChapterNumber" class="form-control" type="text" placeholder="001" />
+                    <span asp-validation-for="ChapterNumber" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ChapterName" class="form-label">Bölüm Adı</label>
+                    <input asp-for="ChapterName" class="form-control" />
+                    <span asp-validation-for="ChapterName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ChapterTitle" class="form-label">Bölüm Başlığı</label>
+                    <input asp-for="ChapterTitle" class="form-control" />
+                    <span asp-validation-for="ChapterTitle" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ChapterDescription" class="form-label">Bölüm Açıklaması</label>
+                    <textarea asp-for="ChapterDescription" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="ChapterDescription" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input asp-for="IsPublished" class="form-check-input" />
+                    <label asp-for="IsPublished" class="form-check-label"></label>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Bölüm Görselleri</label>
+                    <input type="file" name="Images" class="form-control" multiple accept="image/*" required />
+                    <div class="form-text">
+                        Bölüm sayfalarını doğru sırada yüklemek için, dosyaları sayısal olarak adlandırın (1.jpg, 2.jpg vb.).
+                        Kabul edilen formatlar: JPG, JPEG, PNG, GIF, WEBP
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Bölümü Kaydet</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/admin-forms.js"></script>
+} 

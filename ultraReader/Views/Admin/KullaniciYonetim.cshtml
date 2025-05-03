@@ -1,0 +1,101 @@
+@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityUser>
+
+@{
+    ViewData["Title"] = "Kullanıcı Yönetimi";
+}
+
+<div class="container mx-auto px-4 py-6">
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-200 mb-4 md:mb-0">Kullanıcı Yönetimi</h1>
+        <div class="flex gap-2">
+            <a asp-action="YoneticiEkle" class="btn-success">
+                <i class="bi bi-person-plus-fill mr-2"></i>Yeni Yönetici Ekle
+            </a>
+            <a asp-action="Index" class="btn-secondary">
+                <i class="bi bi-arrow-left mr-2"></i>Admin Paneline Dön
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="mb-4 p-4 rounded-md border @(TempData["MessageType"]?.ToString() == "success" 
+            ? "bg-green-50 border-green-300 text-green-700 dark:bg-green-900/30 dark:border-green-800 dark:text-green-300" 
+            : TempData["MessageType"]?.ToString() == "warning" 
+                ? "bg-yellow-50 border-yellow-300 text-yellow-700 dark:bg-yellow-900/30 dark:border-yellow-800 dark:text-yellow-300" 
+                : TempData["MessageType"]?.ToString() == "danger" 
+                    ? "bg-red-50 border-red-300 text-red-700 dark:bg-red-900/30 dark:border-red-800 dark:text-red-300" 
+                    : "bg-blue-50 border-blue-300 text-blue-700 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300")">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 mr-3">
+                    <i class="bi @(TempData["MessageType"]?.ToString() == "success" 
+                        ? "bi-check-circle" 
+                        : TempData["MessageType"]?.ToString() == "warning" 
+                            ? "bi-exclamation-triangle" 
+                            : TempData["MessageType"]?.ToString() == "danger" 
+                                ? "bi-x-circle" 
+                                : "bi-info-circle")"></i>
+                </div>
+                <div>@TempData["Message"]</div>
+            </div>
+        </div>
+    }
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+        <div class="bg-primary dark:bg-primary-900 text-white px-4 py-3">
+            <h5 class="font-semibold">Tüm Kullanıcılar</h5>
+        </div>
+        <div class="p-0">
+            <div class="overflow-x-auto">
+                <table class="table-default">
+                    <thead class="table-header">
+                        <tr>
+                            <th class="table-header-cell">Kullanıcı Adı</th>
+                            <th class="table-header-cell">E-posta</th>
+                            <th class="table-header-cell">E-posta Onayı</th>
+                            <th class="table-header-cell">Roller</th>
+                            <th class="table-header-cell">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-body">
+                        @foreach (var user in Model)
+                        {
+                            <tr class="table-row">
+                                <td class="table-cell">@user.UserName</td>
+                                <td class="table-cell">@user.Email</td>
+                                <td class="table-cell">
+                                    @if (user.EmailConfirmed)
+                                    {
+                                        <span class="badge badge-success">Onaylı</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-warning">Onaysız</span>
+                                    }
+                                </td>
+                                <td class="table-cell">
+                                    <a asp-action="RolAtama" asp-route-userId="@user.Id" class="btn-primary-sm">
+                                        <i class="bi bi-shield-lock mr-1"></i> Rolleri Düzenle
+                                    </a>
+                                </td>
+                                <td class="table-cell">
+                                    <div class="flex gap-2">
+                                        <a asp-action="KullaniciDetay" asp-route-userId="@user.Id" class="btn-info text-xs py-1 px-2">
+                                            <i class="bi bi-info-circle mr-1"></i> Detay
+                                        </a>
+                                        <form asp-action="KullaniciSil" asp-route-userId="@user.Id" method="post" 
+                                              onsubmit="return confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?');">
+                                            <button type="submit" class="btn-danger text-xs py-1 px-2">
+                                                <i class="bi bi-trash mr-1"></i> Sil
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div> 

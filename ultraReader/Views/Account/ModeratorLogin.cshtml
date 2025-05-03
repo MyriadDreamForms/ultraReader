@@ -1,0 +1,61 @@
+@model ultraReader.Models.DTOs.LoginViewModel
+
+@{
+    ViewData["Title"] = "Moderatör Girişi";
+    Layout = "_Layout";
+}
+
+<div class="container mt-5 fade-in">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card profile-card">
+                <div class="card-header bg-success text-white text-center">
+                    <h2 class="mb-0">Moderatör Paneli Girişi</h2>
+                </div>
+                <div class="card-body">
+                    <form asp-action="ModeratorLogin" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label"></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
+                                <input asp-for="Email" class="form-control" placeholder="moderator@example.com" />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label"></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                                <input asp-for="Password" class="form-control" />
+                            </div>
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input asp-for="RememberMe" class="form-check-input" />
+                            <label asp-for="RememberMe" class="form-check-label"></label>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Giriş Yap
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <a asp-controller="WebtoonList" asp-action="Index" class="text-decoration-none">
+                        <i class="bi bi-arrow-left me-1"></i>Ana Sayfaya Dön
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+} 

@@ -1,0 +1,108 @@
+@model ultraReader.Models.DTOs.ReaderViewModel
+
+@{
+    ViewData["Title"] = $"{Model.WebtoonInfo.Title} - {Model.CurrentChapter}";
+    Layout = "_ReaderLayout";
+}
+
+<div class="bg-gray-900 min-h-screen">
+    @if (Model == null)
+    {
+        <div class="alert-danger mt-6 mx-4">Webtoon yüklenirken bir hata oluştu.</div>
+    }
+    else
+    {
+        <!-- Üst Bilgi -->
+        <nav class="fixed top-0 left-0 right-0 z-40 bg-black shadow-md">
+            <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+                <a asp-controller="Webtoon" asp-action="Details" asp-route-name="@Model.WebtoonInfo.FolderName" class="text-xl font-bold text-white">
+                    @Model.WebtoonInfo.Title
+                </a>
+                <span class="text-white">
+                    Bölüm: @Model.CurrentChapter
+                </span>
+            </div>
+        </nav>
+
+        <!-- Resimler -->
+        <div class="pt-16 pb-20 mb-4">
+            @if (Model.Images?.Count > 0)
+            {
+                foreach (var image in Model.Images)
+                {
+                    <img src="~/webtoons/@Model.WebtoonInfo.FolderName/@Model.CurrentChapter/@image"
+                         class="w-full mb-3 reader-image"
+                         alt="Sayfa @(Model.Images.IndexOf(image) + 1)"
+                         loading="lazy" />
+                }
+            }
+            else
+            {
+                <div class="alert-danger mt-6 mx-4">Bu bölümde hiç sayfa bulunamadı.</div>
+            }
+        </div>
+
+        <!-- Alt Navigasyon -->
+        <nav class="fixed bottom-0 left-0 right-0 z-40 bg-black shadow-md">
+            <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+                @if (!string.IsNullOrEmpty(Model.PreviousChapter))
+                {
+                    <a asp-controller="Reader" asp-action="Index" asp-route-name="@Model.WebtoonInfo.FolderName" asp-route-chapter="@Model.PreviousChapter" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-400 rounded-md text-sm font-medium text-white hover:bg-gray-800">
+                        <i class="bi bi-chevron-left mr-1"></i> Önceki Bölüm
+                    </a>
+                }
+                else
+                {
+                    <span class="inline-flex items-center px-4 py-2 border border-gray-600 rounded-md text-sm font-medium text-gray-500 cursor-not-allowed">
+                        <i class="bi bi-chevron-left mr-1"></i> Önceki Bölüm
+                    </span>
+                }
+
+                <a asp-controller="Webtoon" asp-action="Details" asp-route-name="@Model.WebtoonInfo.FolderName" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-400 rounded-md text-sm font-medium text-white hover:bg-gray-800">
+                    <i class="bi bi-grid mr-1"></i> Bölüm Listesi
+                </a>
+
+                @if (!string.IsNullOrEmpty(Model.NextChapter))
+                {
+                    <a asp-controller="Reader" asp-action="Index" asp-route-name="@Model.WebtoonInfo.FolderName" asp-route-chapter="@Model.NextChapter" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-400 rounded-md text-sm font-medium text-white hover:bg-gray-800">
+                        Sonraki Bölüm <i class="bi bi-chevron-right ml-1"></i>
+                    </a>
+                }
+                else
+                {
+                    <span class="inline-flex items-center px-4 py-2 border border-gray-600 rounded-md text-sm font-medium text-gray-500 cursor-not-allowed">
+                        Sonraki Bölüm <i class="bi bi-chevron-right ml-1"></i>
+                    </span>
+                }
+            </div>
+        </nav>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Klavye ile gezinme için kod
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowLeft') {
+                const prevButton = document.querySelector('a[href*="PreviousChapter"]');
+                if (prevButton) prevButton.click();
+            } else if (e.key === 'ArrowRight') {
+                const nextButton = document.querySelector('a[href*="NextChapter"]');
+                if (nextButton) nextButton.click();
+            }
+        });
+
+        // Görüntüleri önceden yüklemek için
+        window.addEventListener('load', function() {
+            @foreach (var image in Model.Images)
+            {
+                <text>
+                new Image().src = "@Url.Content($"~/webtoons/{Model.WebtoonInfo.FolderName}/{Model.CurrentChapter}/{image}")";
+                </text>
+            }
+        });
+    </script>
+} 

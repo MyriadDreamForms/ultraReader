@@ -1,0 +1,39 @@
+@model ultraReader.Models.DTOs.AssignRolesViewModel
+
+@{
+    ViewData["Title"] = "Rolleri Yönet";
+}
+
+<div class="container mt-4">
+    <h1>Kullanıcı Rolleri Yönetimi</h1>
+    <h4>@Model.UserName</h4>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-action="AssignRoles" method="post">
+                <input type="hidden" asp-for="UserId" />
+                <input type="hidden" asp-for="UserName" />
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" asp-for="IsAdmin" id="isAdmin">
+                    <label class="form-check-label" for="isAdmin">
+                        Admin
+                    </label>
+                </div>
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" asp-for="IsModerator" id="isModerator">
+                    <label class="form-check-label" for="isModerator">
+                        Moderatör
+                    </label>
+                </div>
+                
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">Rolleri Kaydet</button>
+                    <a asp-controller="Admin" asp-action="UserManagement" class="btn btn-secondary">İptal</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div> 

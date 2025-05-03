@@ -1,0 +1,48 @@
+@page
+@model ResendEmailConfirmationModel
+@{
+    ViewData["Title"] = "Onay E-postasını Yeniden Gönder";
+}
+
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-200 mb-6">@ViewData["Title"]</h1>
+    
+    <div class="max-w-md mx-auto">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-center mb-6">
+                <i class="bi bi-envelope text-4xl text-primary"></i>
+            </div>
+            
+            <div class="text-center mb-6">
+                <p class="text-gray-700 dark:text-gray-300">
+                    Onay e-postasını yeniden göndermek için lütfen e-posta adresinizi girin.
+                </p>
+            </div>
+            
+            <form method="post">
+                <div asp-validation-summary="All" class="text-red-500 mb-4" role="alert"></div>
+                
+                <div class="mb-6">
+                    <label asp-for="Input.Email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">E-posta</label>
+                    <input asp-for="Input.Email" class="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50" 
+                           autocomplete="email" aria-required="true" placeholder="name@example.com" />
+                    <span asp-validation-for="Input.Email" class="text-red-500 text-sm"></span>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <button type="submit" class="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+                        <i class="bi bi-send mr-2"></i> Gönder
+                    </button>
+                    
+                    <a asp-page="./Login" class="text-sm text-primary hover:text-primary-dark transition-colors">
+                        Giriş sayfasına dön
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+} 

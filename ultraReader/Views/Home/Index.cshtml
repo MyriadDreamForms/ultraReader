@@ -1,0 +1,110 @@
+﻿@{
+    ViewData["Title"] = "Ana Sayfa";
+}
+
+<div class="flex flex-col items-center justify-center py-12">
+    <div class="w-full py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <!-- Hero Section -->
+        <div class="text-center mb-16">
+            <h1 class="text-4xl sm:text-5xl font-bold text-primary mb-4 animate-fade-in">UltraReader'a Hoşgeldiniz</h1>
+            <p class="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">Webtoon okuma deneyiminizi geliştiren modern bir platform</p>
+            
+            <div class="mt-8 flex justify-center">
+                <a asp-controller="WebtoonList" asp-action="Index" class="btn-primary text-lg py-3 px-8 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+                    <i class="bi bi-grid-3x3-gap-fill mr-2"></i> Webtoon Keşfet
+                </a>
+                @if (User?.Identity == null || !User.Identity.IsAuthenticated)
+                {
+                    <a asp-area="Identity" asp-page="/Account/Register" class="btn-secondary ml-4 text-lg py-3 px-8 rounded-full hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300">
+                        <i class="bi bi-person-plus mr-2"></i> Kayıt Ol
+                    </a>
+                }
+            </div>
+        </div>
+        
+        <!-- Features Section -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto mb-16">
+            <div class="card hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+                <div class="flex items-center justify-center h-16 w-16 rounded-full bg-primary text-white mb-6 mx-auto -mt-8 shadow-lg">
+                    <i class="bi bi-book text-2xl"></i>
+                </div>
+                <div class="card-body text-center">
+                    <h2 class="text-xl font-semibold mb-3">Geniş Kütüphane</h2>
+                    <p class="text-gray-600 dark:text-gray-300">Farklı türlerde binlerce webtoon içeriğini keşfedin. Sürekli güncellenen koleksiyonumuzla okuma maceranız hiç bitmeyecek.</p>
+                </div>
+            </div>
+            
+            <div class="card hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+                <div class="flex items-center justify-center h-16 w-16 rounded-full bg-primary text-white mb-6 mx-auto -mt-8 shadow-lg">
+                    <i class="bi bi-display text-2xl"></i>
+                </div>
+                <div class="card-body text-center">
+                    <h2 class="text-xl font-semibold mb-3">Özelleştirilebilir</h2>
+                    <p class="text-gray-600 dark:text-gray-300">Okuma modunuzu ve tercihlerinizi kişiselleştirin. Karanlık mod, görüntü kalitesi, kaydırma yönü - tüm kontrol sizde.</p>
+                </div>
+            </div>
+            
+            <div class="card hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+                <div class="flex items-center justify-center h-16 w-16 rounded-full bg-primary text-white mb-6 mx-auto -mt-8 shadow-lg">
+                    <i class="bi bi-heart text-2xl"></i>
+                </div>
+                <div class="card-body text-center">
+                    <h2 class="text-xl font-semibold mb-3">Kayıtlı İlerleme</h2>
+                    <p class="text-gray-600 dark:text-gray-300">Okuma geçmişinizi ve favorilerinizi kolayca takip edin. Kaldığınız yerden devam etmek hiç bu kadar kolay olmamıştı.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Popular Webtoons Section -->
+        <div class="mb-16">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl font-bold">Popüler Webtoonlar</h2>
+                <a asp-controller="WebtoonList" asp-action="Index" class="text-primary hover:text-primary-dark flex items-center">
+                    Tümünü Gör <i class="bi bi-arrow-right ml-2"></i>
+                </a>
+            </div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                @for (int i = 1; i <= 5; i++)
+                {
+                    <div class="card overflow-hidden group">
+                        <div class="relative pb-[140%] overflow-hidden">
+                            <img src="https://picsum.photos/300/420?random=@i" alt="Webtoon @i" 
+                                 class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"/>
+                            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+                                <div class="text-white text-sm font-medium">Webtoon Adı @i</div>
+                            </div>
+                        </div>
+                        <div class="p-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-gray-500">Tür @i</span>
+                                <div class="flex items-center text-yellow-500 text-xs">
+                                    <i class="bi bi-star-fill mr-1"></i>
+                                    @(4.0 + (i * 0.2))
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        
+        <!-- Call to Action -->
+        <div class="bg-gradient-to-r from-primary-800 to-primary-600 rounded-xl p-8 shadow-xl text-white text-center">
+            <h2 class="text-2xl md:text-3xl font-bold mb-4">Okuma deneyiminizi bugün başlatın</h2>
+            <p class="text-lg opacity-90 mb-6 max-w-2xl mx-auto">UltraReader ile en sevdiğiniz webtoonları takip edin, yenilerini keşfedin ve okuma alışkanlıklarınızı kişiselleştirin.</p>
+            
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a asp-controller="WebtoonList" asp-action="Index" class="btn bg-white text-primary font-medium py-3 px-8 rounded-full hover:bg-gray-100 transition-colors">
+                    <i class="bi bi-search mr-2"></i> Webtoonları Keşfet
+                </a>
+                @if (User?.Identity == null || !User.Identity.IsAuthenticated)
+                {
+                    <a asp-area="Identity" asp-page="/Account/Login" class="btn bg-transparent border border-white text-white py-3 px-8 rounded-full hover:bg-white/10 transition-colors">
+                        <i class="bi bi-box-arrow-in-right mr-2"></i> Giriş Yap
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>

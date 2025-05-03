@@ -1,0 +1,101 @@
+@model IEnumerable<ultraReader.Models.DTOs.Webtoon>
+@{
+    ViewData["Title"] = "Favori Webtoonlarım";
+}
+
+<section class="py-6">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800"><i class="bi bi-heart-fill text-danger mr-2"></i>Favori Webtoonlarım</h1>
+    </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="mb-4 p-4 rounded-md border @(TempData["MessageType"]?.ToString() == "success" 
+            ? "bg-green-50 border-green-300 text-green-700" 
+            : TempData["MessageType"]?.ToString() == "warning" 
+                ? "bg-yellow-50 border-yellow-300 text-yellow-700" 
+                : TempData["MessageType"]?.ToString() == "danger" 
+                    ? "bg-red-50 border-red-300 text-red-700" 
+                    : "bg-blue-50 border-blue-300 text-blue-700")">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 mr-3">
+                    <i class="bi @(TempData["MessageType"]?.ToString() == "success" 
+                        ? "bi-check-circle" 
+                        : TempData["MessageType"]?.ToString() == "warning" 
+                            ? "bi-exclamation-triangle" 
+                            : TempData["MessageType"]?.ToString() == "danger" 
+                                ? "bi-x-circle" 
+                                : "bi-info-circle")"></i>
+                </div>
+                <div>@TempData["Message"]</div>
+            </div>
+        </div>
+    }
+
+    @if (Model.Any())
+    {
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            @foreach (var webtoon in Model)
+            {
+                <div class="webtoon-card h-full flex flex-col">
+                    <div class="relative overflow-hidden">
+                        @if (!string.IsNullOrEmpty(webtoon.CoverImage))
+                        {
+                            <img src="~/webtoons/@webtoon.FolderName/@webtoon.CoverImage" 
+                                 class="webtoon-card-image" 
+                                 alt="@webtoon.Title">
+                        }
+                        else
+                        {
+                            <div class="webtoon-card-image bg-gray-200 flex items-center justify-center">
+                                <i class="bi bi-image text-4xl text-gray-400"></i>
+                            </div>
+                        }
+                    </div>
+                    <div class="p-4 flex-grow">
+                        <h5 class="webtoon-card-title mb-2">@webtoon.Title</h5>
+                        <div class="flex flex-wrap gap-1 mb-2">
+                            <span class="badge-primary">@webtoon.Author</span>
+                            <span class="badge-secondary">@webtoon.Status</span>
+                        </div>
+                        <p class="text-sm text-gray-700 line-clamp-3">@webtoon.Description</p>
+                    </div>
+                    <div class="p-4 pt-0 mt-auto">
+                        <div class="flex gap-2 md:gap-4 items-center">
+                            <a asp-controller="Webtoon" asp-action="Details" asp-route-name="@webtoon.FolderName" 
+                                class="btn-primary flex-1 text-center justify-center items-center inline-flex">
+                                <i class="bi bi-book mr-1"></i> Oku
+                            </a>
+                            <form asp-action="RemoveFromFavorites" asp-route-webtoonId="@webtoon.Id" method="post" class="flex-shrink-0">
+                                <button type="submit" class="btn-outline w-full text-danger border-danger hover:bg-danger-50">
+                                    <i class="bi bi-heart-fill"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="bi bi-info-circle text-blue-500"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-blue-700">
+                        Henüz favori webtoon eklemediniz. Beğendiğiniz bir webtoon'un detay sayfasından "Favorilere Ekle" butonunu kullanarak ekleyebilirsiniz.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-8 flex justify-center">
+            <a asp-controller="WebtoonList" asp-action="Index" class="btn-primary">
+                <i class="bi bi-grid-3x3-gap mr-2"></i> Webtoon Listesine Git
+            </a>
+        </div>
+    }
+</section> 

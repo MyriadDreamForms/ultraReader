@@ -1,0 +1,285 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-bold;
+  }
+  
+  h1 {
+    @apply text-3xl md:text-4xl mb-6;
+  }
+  
+  h2 {
+    @apply text-2xl md:text-3xl mb-4;
+  }
+  
+  h3 {
+    @apply text-xl md:text-2xl mb-3;
+  }
+  
+  h4 {
+    @apply text-lg md:text-xl mb-2;
+  }
+  
+  a {
+    @apply text-primary hover:text-primary-dark transition-colors;
+  }
+}
+
+@layer components {
+  /* Butonlar */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200;
+  }
+  
+  .btn-primary {
+    @apply btn bg-primary hover:bg-primary-dark text-white focus:ring-primary;
+  }
+  
+  .btn-secondary {
+    @apply btn bg-secondary hover:bg-secondary-dark text-gray-700 focus:ring-secondary;
+  }
+  
+  .btn-success {
+    @apply btn bg-success hover:bg-success-dark text-white focus:ring-success;
+  }
+  
+  .btn-warning {
+    @apply btn bg-warning hover:bg-warning-dark text-white focus:ring-warning;
+  }
+  
+  .btn-danger {
+    @apply btn bg-danger hover:bg-danger-dark text-white focus:ring-danger;
+  }
+  
+  .btn-info {
+    @apply btn bg-info hover:bg-info-dark text-white focus:ring-info;
+  }
+  
+  .btn-outline {
+    @apply btn bg-transparent border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-500;
+  }
+  
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+  
+  .btn-lg {
+    @apply px-6 py-3 text-base;
+  }
+  
+  /* Kartlar */
+  .card {
+    @apply bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300;
+  }
+  
+  .card-header {
+    @apply bg-primary text-white p-4;
+  }
+  
+  .card-body {
+    @apply p-4;
+  }
+  
+  .card-footer {
+    @apply p-4 bg-gray-50 border-t;
+  }
+  
+  /* Form elemanları */
+  .form-label {
+    @apply block text-sm font-medium text-gray-700 mb-1;
+  }
+  
+  .form-input {
+    @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50;
+  }
+  
+  .form-checkbox {
+    @apply rounded border-gray-300 text-primary focus:ring-primary;
+  }
+  
+  .form-radio {
+    @apply border-gray-300 text-primary focus:ring-primary;
+  }
+  
+  .form-select {
+    @apply rounded-md border-gray-300 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50;
+  }
+  
+  .form-group {
+    @apply mb-4;
+  }
+  
+  .form-error {
+    @apply mt-1 text-sm text-danger;
+  }
+  
+  .form-hint {
+    @apply mt-1 text-sm text-gray-500;
+  }
+  
+  /* Uyarı kutuları */
+  .alert {
+    @apply p-4 mb-4 rounded-md border;
+  }
+  
+  .alert-primary {
+    @apply alert bg-primary-50 border-primary-300 text-primary-700;
+  }
+  
+  .alert-success {
+    @apply alert bg-green-50 border-green-300 text-green-700;
+  }
+  
+  .alert-warning {
+    @apply alert bg-yellow-50 border-yellow-300 text-yellow-700;
+  }
+  
+  .alert-danger {
+    @apply alert bg-red-50 border-red-300 text-red-700;
+  }
+  
+  .alert-info {
+    @apply alert bg-blue-50 border-blue-300 text-blue-700;
+  }
+
+  /* Webtoon Kartları ve Diğer Komponentler */
+  .webtoon-card {
+    @apply card hover:shadow-lg hover:-translate-y-1;
+  }
+  
+  .webtoon-card-image {
+    @apply h-48 w-full object-cover transition-transform duration-500 hover:scale-105;
+  }
+  
+  .webtoon-card-title {
+    @apply font-bold text-lg truncate;
+  }
+  
+  .chapter-list-item {
+    @apply block px-4 py-2 border-b border-gray-200 hover:bg-gray-50 transition-all duration-200 hover:translate-x-1;
+  }
+  
+  .comment-card {
+    @apply bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-all duration-200;
+  }
+  
+  .profile-card {
+    @apply rounded-lg overflow-hidden shadow-md;
+  }
+  
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .badge-primary {
+    @apply badge bg-primary-100 text-primary-800;
+  }
+  
+  .badge-secondary {
+    @apply badge bg-gray-100 text-gray-800;
+  }
+  
+  .badge-success {
+    @apply badge bg-green-100 text-green-800;
+  }
+  
+  .badge-warning {
+    @apply badge bg-yellow-100 text-yellow-800;
+  }
+  
+  .badge-danger {
+    @apply badge bg-red-100 text-red-800;
+  }
+  
+  .badge-info {
+    @apply badge bg-blue-100 text-blue-800;
+  }
+  
+  /* Reader Sayfası Bileşenleri */
+  .reader-container {
+    @apply w-full min-h-screen;
+  }
+  
+  .reader-header {
+    @apply transition-opacity duration-300;
+  }
+  
+  .reader-image {
+    @apply max-w-full h-auto mx-auto block;
+  }
+  
+  .continuous-mode .reader-image {
+    @apply mb-3;
+  }
+  
+  /* Lazy Loading için CSS */
+  .lazy-load {
+    @apply opacity-0 transition-opacity duration-500;
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJBMTAgMTAgMCAwIDAgMiAxMkExMCAxMCAwIDAgMCAxMiAyMkExMCAxMCAwIDAgMCAyMiAxMkExMCAxMCAwIDAgMCAxMiAyWiIgc3Ryb2tlPSIjY2NjY2NjIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik0xMiA2VjEyTDE2IDE0IiBzdHJva2U9IiNjY2NjY2MiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg==');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 48px;
+    background-color: #f0f0f0;
+    min-height: 200px;
+  }
+  
+  .lazy-load.loaded {
+    @apply opacity-100;
+    background-image: none;
+  }
+  
+  /* Mobil okuyucu kontrolları */
+  .reader-controls {
+    @apply fixed bottom-4 left-0 right-0 mx-auto w-11/12 max-w-md bg-gray-800/80 backdrop-blur-sm text-white rounded-full px-6 py-3 flex justify-between items-center z-20;
+  }
+  
+  /* Karanlık tema için stil tanımlamaları */
+  .dark-theme {
+    @apply bg-gray-900 text-white;
+  }
+  
+  .dark-theme .card {
+    @apply bg-gray-800 text-white border border-gray-700;
+  }
+  
+  .dark-theme .card-header {
+    @apply bg-gray-700 text-white;
+  }
+  
+  .dark-theme .card-footer {
+    @apply bg-gray-800 border-t border-gray-700;
+  }
+  
+  .dark-theme .alert-info {
+    @apply bg-blue-900/30 border-blue-800 text-blue-100;
+  }
+  
+  .dark-theme .alert-success {
+    @apply bg-green-900/30 border-green-800 text-green-100;
+  }
+  
+  .dark-theme .alert-warning {
+    @apply bg-yellow-900/30 border-yellow-800 text-yellow-100;
+  }
+  
+  .dark-theme .alert-danger {
+    @apply bg-red-900/30 border-red-800 text-red-100;
+  }
+  
+  .dark-theme .webtoon-card {
+    @apply bg-gray-800 border-gray-700;
+  }
+  
+  .dark-theme .form-input,
+  .dark-theme .form-select {
+    @apply bg-gray-700 border-gray-600 text-white;
+  }
+} 

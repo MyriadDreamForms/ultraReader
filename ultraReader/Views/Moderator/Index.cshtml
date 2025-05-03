@@ -1,0 +1,31 @@
+@{
+    ViewData["Title"] = "Moderatör Paneli";
+}
+
+<div class="container mt-4">
+    <h1>Moderatör Paneli</h1>
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">İçerik Onaylama</h5>
+                </div>
+                <div class="card-body">
+                    <p>Yeni eklenen webtoon içeriklerini inceleyip onaylayın.</p>
+                    <a asp-action="IcerikOnay" class="btn btn-primary">İçerik Onaylama</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Yorum Yönetimi</h5>
+                </div>
+                <div class="card-body">
+                    <p>Kullanıcı yorumlarını inceleyip onaylayın veya kaldırın.</p>
+                    <a asp-action="YorumYonetim" class="btn btn-success">Yorum Yönetimi</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

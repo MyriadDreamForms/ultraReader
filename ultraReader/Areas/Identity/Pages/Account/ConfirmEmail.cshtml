@@ -1,0 +1,61 @@
+@page
+@model ConfirmEmailModel
+@{
+    ViewData["Title"] = "E-posta Onayı";
+}
+
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-200 mb-6">@ViewData["Title"]</h1>
+    
+    <div class="max-w-md mx-auto">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            @if (Model.StatusMessage != null)
+            {
+                @if (Model.IsSuccess)
+                {
+                    <div class="flex flex-col items-center justify-center mb-6">
+                        <i class="bi bi-check-circle text-5xl text-green-500 mb-4"></i>
+                        <h2 class="text-xl font-semibold text-center text-gray-800 dark:text-gray-200 mb-2">E-posta adresiniz onaylandı</h2>
+                    </div>
+                    
+                    <div class="text-center mb-6">
+                        <p class="text-gray-700 dark:text-gray-300">
+                            E-posta adresiniz başarıyla doğrulandı. Hesabınız artık tamamen aktif.
+                        </p>
+                    </div>
+                    
+                    <div class="text-center">
+                        <a asp-page="./Login" class="inline-flex items-center justify-center px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+                            <i class="bi bi-box-arrow-in-right mr-2"></i> Giriş Yap
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="flex flex-col items-center justify-center mb-6">
+                        <i class="bi bi-exclamation-triangle text-5xl text-yellow-500 mb-4"></i>
+                        <h2 class="text-xl font-semibold text-center text-gray-800 dark:text-gray-200 mb-2">Onay hatası</h2>
+                    </div>
+                    
+                    <div class="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 dark:border-yellow-600 p-4 mb-6">
+                        <div class="flex items-start">
+                            <i class="bi bi-info-circle text-yellow-500 dark:text-yellow-400 mr-2 text-xl flex-shrink-0 mt-0.5"></i>
+                            <p class="text-yellow-700 dark:text-yellow-300">
+                                @Model.StatusMessage
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <a asp-page="./Login" class="inline-flex items-center justify-center px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+                            <i class="bi bi-box-arrow-in-right mr-2"></i> Giriş Yap
+                        </a>
+                        <a asp-page="./ResendEmailConfirmation" class="inline-flex items-center justify-center px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+                            <i class="bi bi-envelope mr-2"></i> Onay E-postasını Yeniden Gönder
+                        </a>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div> 

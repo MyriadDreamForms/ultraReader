@@ -1,0 +1,117 @@
+/* Özel stil tanımlamaları - Sadece Tailwind ile sağlanamayan stiller burada yer alacak */
+
+/* Özel kullanıcı ayarları için değişkenler */
+:root {
+  --reader-font-family: 'Inter', sans-serif;
+  --reader-font-size: 16px;
+  --reader-line-height: 1.6;
+  --reader-text-color: #333;
+  --reader-bg-color: #fff;
+  --reading-max-width: 860px;
+}
+
+.dark {
+  --reader-text-color: #f1f5f9;
+  --reader-bg-color: #1e293b;
+}
+
+/* Klavye kısayolları & erişilebilirlik için özel fokus stilleri */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+/* jQuery UI ile sürükle & bırak için özel stiller */
+.ui-sortable-helper {
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+}
+
+.ui-sortable-placeholder {
+  visibility: visible !important;
+  opacity: 0.3;
+  background-color: #f0f0f0;
+}
+
+/* Reader sayfası için özel stiller */
+.reader-image {
+  width: 100%;
+  max-width: var(--reading-max-width);
+  margin: 0 auto;
+  display: block;
+}
+
+/* Sürekli okuma modu için */
+.continuous-reader .reader-image {
+  margin-bottom: 1rem;
+}
+
+/* Sayfa modu için */
+.page-reader .reader-image {
+  height: auto;
+  max-height: 85vh;
+  object-fit: contain;
+}
+
+/* Manga modu (sağdan sola) için */
+.manga-reader {
+  direction: rtl;
+}
+
+/* Görsel optimizasyonları için */
+img.lazy-load {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+img.lazy-load.loaded {
+  opacity: 1;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* Tarayıcı uyumluluk düzeltmeleri */
+@supports (-webkit-touch-callout: none) {
+  /* iOS için dokunmatik scroll düzeltmeleri */
+  .scroll-snap-x {
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+}
+
+/* Yazdırma stilleri */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white;
+    font-size: 12pt;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+}

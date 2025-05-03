@@ -1,0 +1,497 @@
+@using ultraReader.Models.Enums
+@model ultraReader.Models.DTOs.ReaderViewModel
+
+@{
+    ViewData["Title"] = $"{Model.WebtoonInfo.Title} - {Model.CurrentChapter}";
+    Layout = "_ReaderLayout";
+}
+
+<div class="reader-container">
+    <div class="fixed top-0 left-0 right-0 z-50 bg-gray-800 text-white shadow-md">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div>
+                    <a asp-controller="Webtoon" asp-action="Details" asp-route-name="@Model.WebtoonInfo.FolderName" 
+                       class="inline-flex items-center px-3 py-2 border border-gray-400 rounded-md text-sm font-medium text-white hover:bg-gray-700 mr-2">
+                        <i class="bi bi-arrow-left mr-1"></i> Geri
+                    </a>
+                    <span class="text-lg font-semibold">@Model.WebtoonInfo.Title - @Model.CurrentChapter</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="relative">
+                        <button id="settingsButton" 
+                                class="inline-flex items-center px-3 py-2 border border-gray-400 rounded-md text-sm font-medium text-white hover:bg-gray-700">
+                            <i class="bi bi-gear mr-1"></i> Ayarlar
+                        </button>
+                        <div id="settingsDropdown" 
+                             class="hidden absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-10 text-gray-800">
+                            <h6 class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b">Okuma Modu</h6>
+                            <form asp-action="ChangeReadingMode" method="post">
+                                <input type="hidden" name="name" value="@Model.WebtoonInfo.FolderName" />
+                                <input type="hidden" name="chapter" value="@Model.CurrentChapter" />
+                                <input type="hidden" name="page" value="@Model.CurrentPage" />
+                                
+                                <button type="submit" name="mode" value="@ReadingMode.Continuous" 
+                                        class="block w-full text-left px-4 py-2 hover:bg-gray-100 @(Model.ReadingMode == ReadingMode.Continuous ? "bg-gray-100 font-medium" : "")">
+                                    <i class="bi bi-arrows-expand mr-2"></i> Sürekli (Dikey)
+                                </button>
+                                <button type="submit" name="mode" value="@ReadingMode.SinglePage" 
+                                        class="block w-full text-left px-4 py-2 hover:bg-gray-100 @(Model.ReadingMode == ReadingMode.SinglePage ? "bg-gray-100 font-medium" : "")">
+                                    <i class="bi bi-file-earmark mr-2"></i> Tek Sayfa
+                                </button>
+                                <button type="submit" name="mode" value="@ReadingMode.DoublePage" 
+                                        class="block w-full text-left px-4 py-2 hover:bg-gray-100 @(Model.ReadingMode == ReadingMode.DoublePage ? "bg-gray-100 font-medium" : "")">
+                                    <i class="bi bi-layout-split mr-2"></i> Çift Sayfa
+                                </button>
+                                <button type="submit" name="mode" value="@ReadingMode.MangaMode" 
+                                        class="block w-full text-left px-4 py-2 hover:bg-gray-100 @(Model.ReadingMode == ReadingMode.MangaMode ? "bg-gray-100 font-medium" : "")">
+                                    <i class="bi bi-arrow-left-right mr-2"></i> Manga Modu (Sağdan Sola)
+                                </button>
+                            </form>
+                            <div class="border-t border-gray-200 my-1"></div>
+                            <div class="px-4 py-2 hover:bg-gray-100">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" id="autoSaveToggle" checked 
+                                           class="rounded border-gray-300 text-primary focus:ring-primary mr-2">
+                                    <span>Otomatik Kaydet</span>
+                                </label>
+                            </div>
+                            <div class="border-t border-gray-200 my-1"></div>
+                            <form asp-action="SaveProgress" method="post" id="completeChapterForm">
+                                <input type="hidden" name="webtoonId" value="@Model.WebtoonInfo.Id" />
+                                <input type="hidden" name="chapterId" value="@Model.CurrentChapter" />
+                                <input type="hidden" name="pageNumber" value="@Model.TotalPages" />
+                                <input type="hidden" name="isCompleted" value="true" />
+                                <button type="submit" class="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                                    <i class="bi bi-check-circle mr-2"></i> Bölümü Tamamla
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    @if (!string.IsNullOrEmpty(Model.PreviousChapter))
+                    {
+                        <a asp-controller="Reader" asp-action="Read" asp-route-name="@Model.WebtoonInfo.FolderName" asp-route-chapter="@Model.PreviousChapter" 
+                           class="inline-flex items-center px-3 py-2 border border-gray-400 rounded-md text-sm font-medium text-white hover:bg-gray-700">
+                            <i class="bi bi-chevron-left mr-1"></i> Önceki Bölüm
+                        </a>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.NextChapter))
+                    {
+                        <a asp-controller="Reader" asp-action="Read" asp-route-name="@Model.WebtoonInfo.FolderName" asp-route-chapter="@Model.NextChapter" 
+                           class="inline-flex items-center px-3 py-2 border border-gray-400 rounded-md text-sm font-medium text-white hover:bg-gray-700">
+                            Sonraki Bölüm <i class="bi bi-chevron-right ml-1"></i>
+                        </a>
+                    }
+                </div>
+            </div>
+            
+            @if (Model.HasSavedPosition && Model.CurrentPage > 1)
+            {
+                <div class="bg-blue-800 bg-opacity-50 border border-blue-700 text-white rounded-md mt-2 mb-0 p-3">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <i class="bi bi-bookmark-check mr-1"></i> Kaldığınız yerden devam ediyorsunuz. (Sayfa @Model.CurrentPage / @Model.TotalPages)
+                        </div>
+                        <a href="@Url.Action("Read", new { name = Model.WebtoonInfo.FolderName, chapter = Model.CurrentChapter, page = 1, mode = Model.ReadingMode })" 
+                           class="inline-flex items-center px-2 py-1 border border-blue-500 rounded text-xs font-medium text-white hover:bg-blue-700">
+                            Baştan Başla
+                        </a>
+                    </div>
+                </div>
+            }
+            
+            <!-- İlerleme çubuğu -->
+            <div class="w-full bg-gray-600 rounded-full h-1 mt-2">
+                <div class="bg-green-500 h-1 rounded-full" style="width: @(Model.ReadingProgress)%"></div>
+            </div>
+            
+            <!-- Anlık ilerleme göstergesi (sürekli modda) -->
+            @if (Model.ReadingMode == ReadingMode.Continuous)
+            {
+                <div id="currentPageIndicator" class="text-center text-white mt-1 hidden">
+                    <span class="text-sm"><span id="visiblePageNum">@Model.CurrentPage</span> / @Model.TotalPages</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Sayfa Navigasyon Menüsü -->
+    <div id="pageNavigation" class="fixed bottom-4 left-0 right-0 z-50 flex justify-center transition-opacity duration-300 ease-in-out hidden">
+        <div class="bg-gray-800 bg-opacity-90 text-white rounded-lg shadow-lg px-4 py-2 flex items-center space-x-4">
+            @if (Model.ReadingMode != ReadingMode.Continuous)
+            {
+                <button id="prevPage" class="btn-primary-sm @(Model.CurrentPage <= 1 ? "opacity-50 cursor-not-allowed" : "")" 
+                        @(Model.CurrentPage <= 1 ? "disabled" : "")>
+                    <i class="bi bi-chevron-left mr-1"></i> Önceki
+                </button>
+                
+                <div class="text-center">
+                    <span class="text-sm">@Model.CurrentPage / @Model.TotalPages</span>
+                </div>
+                
+                <button id="nextPage" class="btn-primary-sm @(Model.CurrentPage >= Model.TotalPages ? "opacity-50 cursor-not-allowed" : "")" 
+                        @(Model.CurrentPage >= Model.TotalPages ? "disabled" : "")>
+                    Sonraki <i class="bi bi-chevron-right ml-1"></i>
+                </button>
+            }
+            else
+            {
+                <div class="text-center">
+                    <span class="text-sm"><span id="visiblePageNum">@Model.CurrentPage</span> / @Model.TotalPages</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Yükleme Göstergesi -->
+    <div id="loading-indicator" class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-70">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-white mx-auto mb-4"></div>
+            <p class="text-white text-lg">Yükleniyor...</p>
+        </div>
+    </div>
+
+    <!-- İçerik kısmı - Ana sayfa görünümleri -->
+    <div class="mt-24 container mx-auto px-4 py-6">
+        @* Farklı okuma modları için sayfa görünümleri *@
+        @if (Model.ReadingMode == ReadingMode.Continuous)
+        {
+            <div class="text-center continuous-mode">
+                @foreach (var image in Model.Images)
+                {
+                    <img src="~/webtoons/@Model.WebtoonInfo.FolderName/@Model.CurrentChapter/@image" 
+                         class="max-w-full h-auto mb-4 mx-auto reader-image" 
+                         alt="@image" 
+                         data-page="@(Model.Images.IndexOf(image) + 1)"
+                         id="page-@(Model.Images.IndexOf(image) + 1)">
+                }
+            </div>
+        }
+        else if (Model.ReadingMode == ReadingMode.SinglePage)
+        {
+            <div class="text-center single-page-mode">
+                @if (Model.Images.Count > 0 && Model.CurrentPage <= Model.Images.Count)
+                {
+                    <div class="flex justify-between items-center mb-4">
+                        <button class="btn-primary @(Model.CurrentPage <= 1 ? "opacity-50 cursor-not-allowed" : "")" 
+                                id="prevPage" @(Model.CurrentPage <= 1 ? "disabled" : "")>
+                            <i class="bi bi-chevron-left mr-1"></i> Önceki Sayfa
+                        </button>
+                        <span class="text-gray-200">Sayfa @Model.CurrentPage / @Model.TotalPages</span>
+                        <button class="btn-primary @(Model.CurrentPage >= Model.TotalPages ? "opacity-50 cursor-not-allowed" : "")" 
+                                id="nextPage" @(Model.CurrentPage >= Model.TotalPages ? "disabled" : "")>
+                            Sonraki Sayfa <i class="bi bi-chevron-right ml-1"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="page-container">
+                        <img src="~/webtoons/@Model.WebtoonInfo.FolderName/@Model.CurrentChapter/@Model.Images[Model.CurrentPage - 1]" 
+                             class="max-w-full h-auto mx-auto reader-image" alt="Sayfa @Model.CurrentPage">
+                    </div>
+                }
+            </div>
+        }
+        else if (Model.ReadingMode == ReadingMode.DoublePage)
+        {
+            <div class="text-center double-page-mode">
+                @{
+                    var currentLeftPage = (Model.CurrentPage % 2 == 0) ? Model.CurrentPage - 1 : Model.CurrentPage;
+                    var currentRightPage = currentLeftPage + 1;
+                    var hasRightPage = currentRightPage <= Model.TotalPages;
+                }
+                
+                <div class="flex justify-between items-center mb-4">
+                    <button class="btn-primary @(currentLeftPage <= 1 ? "opacity-50 cursor-not-allowed" : "")" 
+                            id="prevPage" @(currentLeftPage <= 1 ? "disabled" : "")>
+                        <i class="bi bi-chevron-left mr-1"></i> Önceki Sayfa
+                    </button>
+                    <span class="text-gray-200">Sayfa @currentLeftPage-@(hasRightPage ? currentRightPage.ToString() : "") / @Model.TotalPages</span>
+                    <button class="btn-primary @(currentRightPage >= Model.TotalPages ? "opacity-50 cursor-not-allowed" : "")" 
+                            id="nextPage" @(currentRightPage >= Model.TotalPages ? "disabled" : "")>
+                        Sonraki Sayfa <i class="bi bi-chevron-right ml-1"></i>
+                    </button>
+                </div>
+                
+                <div class="flex flex-col md:flex-row">
+                    <div class="w-full md:w-1/2 p-1">
+                        <img src="~/webtoons/@Model.WebtoonInfo.FolderName/@Model.CurrentChapter/@Model.Images[currentLeftPage - 1]" 
+                             class="max-w-full h-auto mx-auto reader-image" alt="Sayfa @currentLeftPage">
+                    </div>
+                    @if (hasRightPage)
+                    {
+                        <div class="w-full md:w-1/2 p-1">
+                            <img src="~/webtoons/@Model.WebtoonInfo.FolderName/@Model.CurrentChapter/@Model.Images[currentRightPage - 1]" 
+                                 class="max-w-full h-auto mx-auto reader-image" alt="Sayfa @currentRightPage">
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else if (Model.ReadingMode == ReadingMode.MangaMode)
+        {
+            <div class="text-center manga-mode">
+                @if (Model.Images.Count > 0 && Model.CurrentPage <= Model.Images.Count)
+                {
+                    <div class="flex flex-row-reverse justify-between items-center mb-4">
+                        <button class="btn-primary @(Model.CurrentPage <= 1 ? "opacity-50 cursor-not-allowed" : "")" 
+                                id="prevPage" @(Model.CurrentPage <= 1 ? "disabled" : "")>
+                            <i class="bi bi-chevron-right mr-1"></i> Önceki Sayfa
+                        </button>
+                        <span class="text-gray-200">Sayfa @Model.CurrentPage / @Model.TotalPages</span>
+                        <button class="btn-primary @(Model.CurrentPage >= Model.TotalPages ? "opacity-50 cursor-not-allowed" : "")" 
+                                id="nextPage" @(Model.CurrentPage >= Model.TotalPages ? "disabled" : "")>
+                            Sonraki Sayfa <i class="bi bi-chevron-left ml-1"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="page-container">
+                        <img src="~/webtoons/@Model.WebtoonInfo.FolderName/@Model.CurrentChapter/@Model.Images[Model.CurrentPage - 1]" 
+                             class="max-w-full h-auto mx-auto reader-image" alt="Sayfa @Model.CurrentPage">
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function() {
+            // Ekran mod değişkeni
+            var currentMode = '@Model.ReadingMode';
+            
+            // Otomatik gizleme için zamanlayıcı
+            var debounceTimeout;
+            
+            // Ayarlar menüsü
+            $('#settingsButton').click(function() {
+                $('#settingsDropdown').toggleClass('hidden');
+            });
+            
+            // Ayarlar menüsünü dışarı tıklayınca kapat
+            $(document).click(function(e) {
+                if (!$(e.target).closest('#settingsButton, #settingsDropdown').length) {
+                    $('#settingsDropdown').addClass('hidden');
+                }
+            });
+            
+            // Fare hareketi algılama
+            $(document).on('mousemove', function() {
+                if (currentMode === '@ReadingMode.Continuous') {
+                    $('#pageNavigation').removeClass('hidden');
+                    $('#currentPageIndicator').removeClass('hidden');
+                    
+                    clearTimeout(debounceTimeout);
+                    debounceTimeout = setTimeout(function() {
+                        $('#pageNavigation').addClass('hidden');
+                        $('#currentPageIndicator').addClass('hidden');
+                    }, 3000);
+                }
+            });
+            
+            // Tuş kontrolleri
+            $(document).keydown(function(e) {
+                if (currentMode !== '@ReadingMode.Continuous') {
+                    if (e.keyCode === 37) { // Sol ok
+                        $("#prevPage").click();
+                    } else if (e.keyCode === 39) { // Sağ ok
+                        $("#nextPage").click();
+                    } else if (e.keyCode === 32) { // Boşluk
+                        $("#nextPage").click();
+                    }
+                }
+            });
+            
+            // Sayfa navigasyon butonları
+            $("#prevPage").click(function() {
+                if ($(this).attr('disabled')) return;
+                
+                if ('@Model.ReadingMode' === '@ReadingMode.SinglePage') {
+                    // Tek sayfa modu
+                    var nextPage = @Model.CurrentPage - 1;
+                    window.location.href = '@Url.Action("Read", new { name = Model.WebtoonInfo.FolderName, chapter = Model.CurrentChapter })' + '?page=' + nextPage + '&mode=@Model.ReadingMode';
+                } 
+                else if ('@Model.ReadingMode' === '@ReadingMode.DoublePage') {
+                    // Çift sayfa modu
+                    var currentLeftPage = @((Model.CurrentPage % 2 == 0) ? Model.CurrentPage - 1 : Model.CurrentPage);
+                    var nextLeftPage = currentLeftPage - 2;
+                    if (nextLeftPage < 1) nextLeftPage = 1;
+                    window.location.href = '@Url.Action("Read", new { name = Model.WebtoonInfo.FolderName, chapter = Model.CurrentChapter })' + '?page=' + nextLeftPage + '&mode=@Model.ReadingMode';
+                } 
+                else if ('@Model.ReadingMode' === '@ReadingMode.MangaMode') {
+                    // Manga modu
+                    var nextPage = @Model.CurrentPage - 1;
+                    window.location.href = '@Url.Action("Read", new { name = Model.WebtoonInfo.FolderName, chapter = Model.CurrentChapter })' + '?page=' + nextPage + '&mode=@Model.ReadingMode';
+                }
+            });
+            
+            $("#nextPage").click(function() {
+                if ($(this).attr('disabled')) return;
+                
+                if ('@Model.ReadingMode' === '@ReadingMode.SinglePage') {
+                    // Tek sayfa modu
+                    var nextPage = @Model.CurrentPage + 1;
+                    if (nextPage > @Model.TotalPages) {
+                        // Son sayfadaysa, bir sonraki bölüme git
+                        @if (!string.IsNullOrEmpty(Model.NextChapter))
+                        {
+                            <text>
+                            window.location.href = '@Url.Action("Read", new { name = Model.WebtoonInfo.FolderName, chapter = Model.NextChapter })' + '?mode=@Model.ReadingMode';
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                            // Son bölüm, geri dön
+                            window.location.href = '@Url.Action("Details", "Webtoon", new { name = Model.WebtoonInfo.FolderName })';
+                            </text>
+                        }
+                    } else {
+                        window.location.href = '@Url.Action("Read", new { name = Model.WebtoonInfo.FolderName, chapter = Model.CurrentChapter })' + '?page=' + nextPage + '&mode=@Model.ReadingMode';
+                    }
+                } 
+                else if ('@Model.ReadingMode' === '@ReadingMode.DoublePage') {
+                    // Çift sayfa modu
+                    var currentLeftPage = @((Model.CurrentPage % 2 == 0) ? Model.CurrentPage - 1 : Model.CurrentPage);
+                    var nextLeftPage = currentLeftPage + 2;
+                    if (nextLeftPage > @Model.TotalPages) {
+                        // Son sayfadaysa, bir sonraki bölüme git
+                        @if (!string.IsNullOrEmpty(Model.NextChapter))
+                        {
+                            <text>
+                            window.location.href = '@Url.Action("Read", new { name = Model.WebtoonInfo.FolderName, chapter = Model.NextChapter })' + '?mode=@Model.ReadingMode';
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                            // Son bölüm, geri dön
+                            window.location.href = '@Url.Action("Details", "Webtoon", new { name = Model.WebtoonInfo.FolderName })';
+                            </text>
+                        }
+                    } else {
+                        window.location.href = '@Url.Action("Read", new { name = Model.WebtoonInfo.FolderName, chapter = Model.CurrentChapter })' + '?page=' + nextLeftPage + '&mode=@Model.ReadingMode';
+                    }
+                } 
+                else if ('@Model.ReadingMode' === '@ReadingMode.MangaMode') {
+                    // Manga modu
+                    var nextPage = @Model.CurrentPage + 1;
+                    if (nextPage > @Model.TotalPages) {
+                        // Son sayfadaysa, bir sonraki bölüme git
+                        @if (!string.IsNullOrEmpty(Model.NextChapter))
+                        {
+                            <text>
+                            window.location.href = '@Url.Action("Read", new { name = Model.WebtoonInfo.FolderName, chapter = Model.NextChapter })' + '?mode=@Model.ReadingMode';
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                            // Son bölüm, geri dön
+                            window.location.href = '@Url.Action("Details", "Webtoon", new { name = Model.WebtoonInfo.FolderName })';
+                            </text>
+                        }
+                    } else {
+                        window.location.href = '@Url.Action("Read", new { name = Model.WebtoonInfo.FolderName, chapter = Model.CurrentChapter })' + '?page=' + nextPage + '&mode=@Model.ReadingMode';
+                    }
+                }
+            });
+            
+            // Sürekli mod için sayfa izleme
+            if (currentMode === '@ReadingMode.Continuous') {
+                var options = {
+                    root: null,
+                    rootMargin: '0px',
+                    threshold: 0.5
+                };
+                
+                var observer = new IntersectionObserver(function(entries) {
+                    entries.forEach(function(entry) {
+                        if (entry.isIntersecting) {
+                            var page = $(entry.target).data('page');
+                            // Sayfayı güncelle
+                            $('#visiblePageNum').text(page);
+                            
+                            // Otomatik kaydet
+                            if ($('#autoSaveToggle').is(':checked')) {
+                                $.ajax({
+                                    type: 'POST',
+                                    url: '@Url.Action("SaveProgress")',
+                                    data: {
+                                        webtoonId: '@Model.WebtoonInfo.Id',
+                                        chapterId: '@Model.CurrentChapter',
+                                        pageNumber: page,
+                                        isCompleted: false
+                                    },
+                                    success: function(data) {
+                                        console.log('İlerleme kaydedildi');
+                                    }
+                                });
+                            }
+                            
+                            // URL'i güncelle (geçmişe kaydetmeden)
+                            var url = new URL(window.location.href);
+                            url.searchParams.set('page', page);
+                            window.history.replaceState({}, '', url);
+                            
+                            // Göstergeler
+                            $('#pageNavigation').removeClass('hidden');
+                            $('#currentPageIndicator').removeClass('hidden');
+                            
+                            // 3 saniye sonra gizle
+                            clearTimeout(debounceTimeout);
+                            debounceTimeout = setTimeout(function() {
+                                $('#pageNavigation').addClass('hidden');
+                                $('#currentPageIndicator').addClass('hidden');
+                            }, 3000);
+                        }
+                    });
+                }, options);
+                
+                // Her sayfayı izle
+                $('.reader-image').each(function() {
+                    observer.observe(this);
+                });
+                
+                // Sayfa yüklendiğinde mevcut sayfaya kaydır (önceki okuma konumunu yükle)
+                @if (Model.HasSavedPosition && Model.CurrentPage > 1)
+                {
+                    <text>
+                    // Sayfa yüklendiğinde kayıtlı pozisyona kaydır
+                    setTimeout(function() {
+                        var targetElement = document.getElementById('page-@Model.CurrentPage');
+                        if (targetElement) {
+                            targetElement.scrollIntoView();
+                        }
+                    }, 500);
+                    </text>
+                }
+            }
+            
+            // Tüm görüntülerin yüklenmesini bekle, sonra yükleme göstergesini kaldır
+            var totalImages = $('.reader-image').length;
+            var loadedImages = 0;
+            
+            $('.reader-image').on('load', function() {
+                loadedImages++;
+                if (loadedImages >= totalImages) {
+                    $('#loading-indicator').addClass('hidden');
+                }
+            }).on('error', function() {
+                loadedImages++;
+                if (loadedImages >= totalImages) {
+                    $('#loading-indicator').addClass('hidden');
+                }
+                $(this).attr('src', '/images/image-not-found.png');
+            });
+            
+            // Zaten önbelleğe alınmış görüntüler için
+            $('.reader-image').each(function() {
+                if (this.complete) {
+                    $(this).trigger('load');
+                }
+            });
+        });
+    </script>
+} 

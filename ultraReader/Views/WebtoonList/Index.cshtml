@@ -1,0 +1,276 @@
+@model IEnumerable<ultraReader.Models.Entities.WebtoonInfo>
+
+@{
+    ViewData["Title"] = "Webtoon Listesi";
+    var genres = Model.SelectMany(w => w.Genres).Distinct().OrderBy(g => g).ToList();
+    var statuses = Model.Select(w => w.Status).Distinct().OrderBy(s => s).ToList();
+}
+
+<div class="fade-in">
+    <!-- Header Section -->
+    <div class="mb-8">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-4">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200">
+                <i class="bi bi-collection mr-2"></i>Webtoon Kütüphanesi
+            </h1>
+            
+            <div class="w-full md:w-64 mt-4 md:mt-0">
+                <div class="relative">
+                    <input type="text" id="searchInput" 
+                           class="w-full px-4 py-2 pl-10 rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-primary focus:border-primary transition-colors" 
+                           placeholder="Webtoon ara...">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="bi bi-search text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filter Controls -->
+        <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 mb-6">
+            <div x-data="{ filterOpen: false }" class="relative">
+                <button @@click="filterOpen = !filterOpen" class="flex items-center justify-between w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                    <span class="flex items-center">
+                        <i class="bi bi-funnel mr-2"></i> Filtreler
+                    </span>
+                    <i class="bi" :class="filterOpen ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                </button>
+                
+                <div x-show="filterOpen" 
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 transform -translate-y-4"
+                     x-transition:enter-end="opacity-100 transform translate-y-0"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 transform translate-y-0"
+                     x-transition:leave-end="opacity-0 transform -translate-y-4"
+                     class="mt-2 p-4 bg-white dark:bg-gray-800 rounded-md shadow-lg">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Genre Filter -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tür</label>
+                            <select id="genreFilter" class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-md focus:ring-primary focus:border-primary">
+                                <option value="">Tümü</option>
+                                @foreach (var genre in genres)
+                                {
+                                    <option value="@genre.ToLower()">@genre</option>
+                                }
+                            </select>
+                        </div>
+                        
+                        <!-- Status Filter -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Durum</label>
+                            <select id="statusFilter" class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-md focus:ring-primary focus:border-primary">
+                                <option value="">Tümü</option>
+                                @foreach (var status in statuses)
+                                {
+                                    <option value="@status.ToLower()">@status</option>
+                                }
+                            </select>
+                        </div>
+                        
+                        <!-- Sort By -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sıralama</label>
+                            <select id="sortFilter" class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-md focus:ring-primary focus:border-primary">
+                                <option value="newest">En Yeni</option>
+                                <option value="oldest">En Eski</option>
+                                <option value="title">İsme Göre (A-Z)</option>
+                                <option value="title-desc">İsme Göre (Z-A)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Filter Buttons -->
+                    <div class="flex justify-end mt-4 space-x-2">
+                        <button id="resetFilters" class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <i class="bi bi-x-circle mr-1"></i> Sıfırla
+                        </button>
+                        <button id="applyFilters" class="px-4 py-2 text-sm text-white bg-primary hover:bg-primary-dark rounded-md transition-colors">
+                            <i class="bi bi-check-circle mr-1"></i> Uygula
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 dark:border-blue-600 p-4 rounded-md">
+            <div class="flex items-center">
+                <i class="bi bi-info-circle-fill text-blue-500 dark:text-blue-400 mr-2 text-xl"></i>
+                <p class="text-blue-700 dark:text-blue-300">Henüz hiç webtoon eklenmemiş.</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Webtoon Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6" id="webtoonList">
+            @foreach (var webtoon in Model.OrderByDescending(w => w.CreatedAt))
+            {
+                <div class="webtoon-item transition-all duration-300 hover:shadow-xl" 
+                     data-title="@webtoon.Title.ToLower()" 
+                     data-author="@webtoon.Author.ToLower()" 
+                     data-genres="@string.Join(" ", webtoon.Genres.Select(g => g.ToLower()))"
+                     data-status="@webtoon.Status.ToLower()"
+                     data-date="@webtoon.CreatedAt.ToString("yyyy-MM-dd")">
+                    <div class="card h-full flex flex-col">
+                        <div class="relative overflow-hidden group">
+                            <img src="~/webtoons/@webtoon.FolderName/@webtoon.CoverImage" 
+                                 class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110" 
+                                 alt="@webtoon.Title">
+                                 
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            
+                            <div class="absolute bottom-0 left-0 right-0 p-3 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                                <a asp-controller="Webtoon" asp-action="Details" asp-route-name="@webtoon.FolderName" 
+                                   class="btn-primary w-full flex justify-center items-center">
+                                    <i class="bi bi-eye-fill mr-1"></i> Detaylar
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="p-4 flex-grow">
+                            <h5 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 line-clamp-1">@webtoon.Title</h5>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                <i class="bi bi-person-fill mr-1"></i><span class="font-medium">Yazar:</span> @webtoon.Author
+                            </p>
+                            
+                            <div class="flex flex-wrap mb-2">
+                                @foreach (var genre in webtoon.Genres.Take(3))
+                                {
+                                    <span class="inline-block bg-gray-200 dark:bg-gray-700 rounded-full px-2 py-1 text-xs font-semibold text-gray-700 dark:text-gray-300 mr-1 mb-1">@genre</span>
+                                }
+                                @if (webtoon.Genres.Count() > 3)
+                                {
+                                    <span class="inline-block bg-gray-100 dark:bg-gray-800 rounded-full px-2 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 mr-1 mb-1">+@(webtoon.Genres.Count() - 3)</span>
+                                }
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <span class="inline-flex items-center text-xs rounded-full px-2 py-1 bg-primary/10 text-primary">
+                                    <i class="bi bi-info-circle mr-1"></i> @webtoon.Status
+                                </span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">
+                                    @webtoon.CreatedAt.ToString("dd.MM.yyyy")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div id="noResults" class="hidden mt-8 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 dark:border-yellow-600 p-4 rounded-md">
+            <div class="flex items-center">
+                <i class="bi bi-exclamation-triangle-fill text-yellow-500 dark:text-yellow-400 mr-2 text-xl"></i>
+                <p class="text-yellow-700 dark:text-yellow-300">Arama kriterlerinize uygun webtoon bulunamadı.</p>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const genreFilter = document.getElementById('genreFilter');
+            const statusFilter = document.getElementById('statusFilter');
+            const sortFilter = document.getElementById('sortFilter');
+            const resetFiltersBtn = document.getElementById('resetFilters');
+            const applyFiltersBtn = document.getElementById('applyFilters');
+            const webtoonItems = document.querySelectorAll('.webtoon-item');
+            const noResults = document.getElementById('noResults');
+            const webtoonList = document.getElementById('webtoonList');
+            
+            // Function to apply all filters
+            function applyFilters() {
+                const searchText = searchInput.value.toLowerCase();
+                const selectedGenre = genreFilter.value;
+                const selectedStatus = statusFilter.value;
+                const sortBy = sortFilter.value;
+                
+                let resultsFound = false;
+                let visibleItems = [];
+                
+                // Filter items
+                webtoonItems.forEach(function(item) {
+                    const title = item.dataset.title;
+                    const author = item.dataset.author;
+                    const genres = item.dataset.genres;
+                    const status = item.dataset.status;
+                    
+                    const matchesSearch = searchText === '' || 
+                                        title.includes(searchText) || 
+                                        author.includes(searchText) || 
+                                        genres.includes(searchText);
+                                        
+                    const matchesGenre = selectedGenre === '' || genres.includes(selectedGenre);
+                    const matchesStatus = selectedStatus === '' || status === selectedStatus;
+                    
+                    if (matchesSearch && matchesGenre && matchesStatus) {
+                        item.classList.remove('hidden');
+                        visibleItems.push(item);
+                        resultsFound = true;
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+                
+                // Sort visible items
+                if (visibleItems.length > 0) {
+                    sortItems(visibleItems, sortBy);
+                }
+                
+                // Show/hide no results message
+                if (resultsFound) {
+                    noResults.classList.add('hidden');
+                } else {
+                    noResults.classList.remove('hidden');
+                }
+            }
+            
+            // Function to sort items
+            function sortItems(items, sortBy) {
+                const sortedItems = Array.from(items).sort((a, b) => {
+                    if (sortBy === 'newest') {
+                        return new Date(b.dataset.date) - new Date(a.dataset.date);
+                    } else if (sortBy === 'oldest') {
+                        return new Date(a.dataset.date) - new Date(b.dataset.date);
+                    } else if (sortBy === 'title') {
+                        return a.dataset.title.localeCompare(b.dataset.title);
+                    } else if (sortBy === 'title-desc') {
+                        return b.dataset.title.localeCompare(a.dataset.title);
+                    }
+                    return 0;
+                });
+                
+                // Reorder DOM elements based on sort
+                sortedItems.forEach(item => webtoonList.appendChild(item));
+            }
+            
+            // Add event listeners
+            searchInput.addEventListener('keyup', function() {
+                applyFilters();
+            });
+            
+            applyFiltersBtn.addEventListener('click', function() {
+                applyFilters();
+            });
+            
+            resetFiltersBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                genreFilter.value = '';
+                statusFilter.value = '';
+                sortFilter.value = 'newest';
+                applyFilters();
+            });
+            
+            // Initialize
+            applyFilters();
+        });
+    </script>
+} 

@@ -1,0 +1,453 @@
+@model ultraReader.Models.DTOs.UserPreferencesViewModel
+
+@{
+    ViewData["Title"] = "Kullanıcı Tercihleri";
+}
+
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Kullanıcı Tercihleri</h1>
+    
+    @if (TempData["Message"] != null)
+    {
+        <div class="mb-4 p-4 rounded-md border @(TempData["MessageType"]?.ToString() == "success" 
+            ? "bg-green-50 border-green-300 text-green-700" 
+            : TempData["MessageType"]?.ToString() == "warning" 
+                ? "bg-yellow-50 border-yellow-300 text-yellow-700" 
+                : TempData["MessageType"]?.ToString() == "danger" 
+                    ? "bg-red-50 border-red-300 text-red-700" 
+                    : "bg-blue-50 border-blue-300 text-blue-700")">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 mr-3">
+                    <i class="bi @(TempData["MessageType"]?.ToString() == "success" 
+                        ? "bi-check-circle" 
+                        : TempData["MessageType"]?.ToString() == "warning" 
+                            ? "bi-exclamation-triangle" 
+                            : TempData["MessageType"]?.ToString() == "danger" 
+                                ? "bi-x-circle" 
+                                : "bi-info-circle")"></i>
+                </div>
+                <div>@TempData["Message"]</div>
+            </div>
+        </div>
+    }
+    
+    <div class="flex flex-col md:flex-row gap-6">
+        <div class="w-full md:w-1/4 mb-6 md:mb-0">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div role="tablist" class="flex flex-col">
+                    <button type="button" class="w-full px-4 py-3 text-left border-l-4 border-primary bg-primary-50 text-primary-dark font-medium focus:outline-none" 
+                            id="gorunum-tab" data-tabs-target="gorunum">
+                        <i class="bi bi-palette mr-2"></i> Görünüm Ayarları
+                    </button>
+                    <button type="button" class="w-full px-4 py-3 text-left border-l-4 border-transparent hover:bg-gray-50 focus:outline-none" 
+                            id="bildirimler-tab" data-tabs-target="bildirimler">
+                        <i class="bi bi-bell mr-2"></i> Bildirim Ayarları
+                    </button>
+                    <button type="button" class="w-full px-4 py-3 text-left border-l-4 border-transparent hover:bg-gray-50 focus:outline-none" 
+                            id="webtoon-tab" data-tabs-target="webtoon">
+                        <i class="bi bi-book mr-2"></i> Webtoon Tercihleri
+                    </button>
+                    <button type="button" class="w-full px-4 py-3 text-left border-l-4 border-transparent hover:bg-gray-50 focus:outline-none" 
+                            id="favoriler-tab" data-tabs-target="favoriler">
+                        <i class="bi bi-heart mr-2"></i> Favorilerim
+                    </button>
+                    <button type="button" class="w-full px-4 py-3 text-left border-l-4 border-transparent hover:bg-gray-50 focus:outline-none" 
+                            id="okuma-listesi-tab" data-tabs-target="okuma-listesi">
+                        <i class="bi bi-bookmark mr-2"></i> Okuma Listem
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="w-full md:w-3/4">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="p-6">
+                    <div id="tabContent">
+                        <!-- Görünüm Ayarları -->
+                        <div class="block" id="gorunum">
+                            <h3 class="text-xl font-semibold mb-6">Görünüm Ayarları</h3>
+                            
+                            <form asp-action="Tercihler" method="post">
+                                <div class="mb-6">
+                                    <label class="block text-gray-700 mb-3 text-sm font-medium">Tema</label>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div class="rounded-lg overflow-hidden border-2 @(Model.Theme == "light" ? "border-primary" : "border-gray-200")">
+                                            <div class="bg-white text-gray-800 p-3">
+                                                <h5 class="font-medium">Açık Tema</h5>
+                                                <p class="text-sm text-gray-600">Beyaz arka plan, koyu yazı.</p>
+                                            </div>
+                                            <div class="bg-gray-50 px-3 py-2">
+                                                <label class="flex items-center">
+                                                    <input class="mr-2 w-4 h-4 text-primary border-gray-300 focus:ring-primary" 
+                                                           type="radio" asp-for="Theme" value="light" id="themeLight" checked="@(Model.Theme == "light")">
+                                                    <span>Açık Tema</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="rounded-lg overflow-hidden border-2 @(Model.Theme == "dark" ? "border-primary" : "border-gray-200")">
+                                            <div class="bg-gray-800 text-white p-3">
+                                                <h5 class="font-medium">Koyu Tema</h5>
+                                                <p class="text-sm text-gray-300">Koyu arka plan, açık yazı.</p>
+                                            </div>
+                                            <div class="bg-gray-50 px-3 py-2">
+                                                <label class="flex items-center">
+                                                    <input class="mr-2 w-4 h-4 text-primary border-gray-300 focus:ring-primary" 
+                                                           type="radio" asp-for="Theme" value="dark" id="themeDark" checked="@(Model.Theme == "dark")">
+                                                    <span>Koyu Tema</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="rounded-lg overflow-hidden border-2 @(Model.Theme == "sepia" ? "border-primary" : "border-gray-200")">
+                                            <div style="background-color: #f5e7c1; color: #5c4b37;" class="p-3">
+                                                <h5 class="font-medium">Sepya</h5>
+                                                <p class="text-sm" style="color: #7a6247;">Okuma moduna uygun, göz yormayan tema.</p>
+                                            </div>
+                                            <div class="bg-gray-50 px-3 py-2">
+                                                <label class="flex items-center">
+                                                    <input class="mr-2 w-4 h-4 text-primary border-gray-300 focus:ring-primary" 
+                                                           type="radio" asp-for="Theme" value="sepia" id="themeSepia" checked="@(Model.Theme == "sepia")">
+                                                    <span>Sepya</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <label for="ReadingDirection" class="block text-gray-700 mb-2 text-sm font-medium">Okuma Yönü</label>
+                                    <select asp-for="ReadingDirection" 
+                                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+                                        <option value="vertical" selected="@(Model.ReadingDirection == "vertical")">Dikey Kaydırma</option>
+                                        <option value="horizontal-rtl" selected="@(Model.ReadingDirection == "horizontal-rtl")">Yatay (Sağdan Sola)</option>
+                                        <option value="horizontal-ltr" selected="@(Model.ReadingDirection == "horizontal-ltr")">Yatay (Soldan Sağa)</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <label for="PageSize" class="block text-gray-700 mb-2 text-sm font-medium">Sayfa Başına İçerik</label>
+                                    <select asp-for="PageSize" 
+                                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+                                        <option value="5">5 İçerik</option>
+                                        <option value="10">10 İçerik</option>
+                                        <option value="15">15 İçerik</option>
+                                        <option value="20">20 İçerik</option>
+                                        <option value="25">25 İçerik</option>
+                                        <option value="50">50 İçerik</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <label class="flex items-center">
+                                        <input class="w-4 h-4 text-primary border-gray-300 focus:ring-primary" 
+                                               type="checkbox" asp-for="AutoScroll" id="autoScroll">
+                                        <span class="ml-2">Otomatik Kaydırma</span>
+                                    </label>
+                                </div>
+                                
+                                <div class="mb-6" id="scrollSpeedDiv" style="display: @(Model.AutoScroll ? "block" : "none");">
+                                    <label for="AutoScrollSpeed" class="block text-gray-700 mb-2 text-sm font-medium">Kaydırma Hızı</label>
+                                    <input type="range" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" 
+                                           asp-for="AutoScrollSpeed" min="1" max="10">
+                                    <div class="flex justify-between mt-1 text-xs text-gray-500">
+                                        <span>Yavaş</span>
+                                        <span>Orta</span>
+                                        <span>Hızlı</span>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn-primary">Kaydet</button>
+                            </form>
+                        </div>
+                        
+                        <!-- Bildirim Ayarları -->
+                        <div class="hidden" id="bildirimler">
+                            <h3 class="text-xl font-semibold mb-6">Bildirim Ayarları</h3>
+                            
+                            <form asp-action="Tercihler" method="post">
+                                <input type="hidden" asp-for="Theme" />
+                                <input type="hidden" asp-for="ReadingDirection" />
+                                <input type="hidden" asp-for="PageSize" />
+                                <input type="hidden" asp-for="AutoScroll" />
+                                <input type="hidden" asp-for="AutoScrollSpeed" />
+                                
+                                <div class="mb-6">
+                                    <div class="flex items-start mb-2">
+                                        <div class="flex items-center h-5">
+                                            <input class="w-4 h-4 text-primary border-gray-300 focus:ring-primary" 
+                                                   type="checkbox" asp-for="EmailNotifications" id="emailNotifications">
+                                        </div>
+                                        <div class="ml-3 text-sm">
+                                            <label for="emailNotifications" class="font-medium text-gray-700">E-posta Bildirimleri</label>
+                                            <p class="text-gray-500">Önemli güncellemeler ve duyurular için e-posta alın.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <div class="flex items-start mb-2">
+                                        <div class="flex items-center h-5">
+                                            <input class="w-4 h-4 text-primary border-gray-300 focus:ring-primary" 
+                                                   type="checkbox" asp-for="NewChapterNotifications" id="newChapterNotifications">
+                                        </div>
+                                        <div class="ml-3 text-sm">
+                                            <label for="newChapterNotifications" class="font-medium text-gray-700">Yeni Bölüm Bildirimleri</label>
+                                            <p class="text-gray-500">Takip ettiğiniz webtoonlara yeni bölüm eklendiğinde bildirim alın.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <div class="flex items-start mb-2">
+                                        <div class="flex items-center h-5">
+                                            <input class="w-4 h-4 text-primary border-gray-300 focus:ring-primary" 
+                                                   type="checkbox" asp-for="CommentNotifications" id="commentNotifications">
+                                        </div>
+                                        <div class="ml-3 text-sm">
+                                            <label for="commentNotifications" class="font-medium text-gray-700">Yorum Bildirimleri</label>
+                                            <p class="text-gray-500">Yorumlarınıza yanıt geldiğinde bildirim alın.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn-primary">Kaydet</button>
+                            </form>
+                        </div>
+                        
+                        <!-- Webtoon Tercihleri -->
+                        <div class="hidden" id="webtoon">
+                            <h3 class="text-xl font-semibold mb-6">Webtoon Tercihleri</h3>
+                            
+                            <form asp-action="Tercihler" method="post">
+                                <input type="hidden" asp-for="Theme" />
+                                <input type="hidden" asp-for="ReadingDirection" />
+                                <input type="hidden" asp-for="PageSize" />
+                                <input type="hidden" asp-for="AutoScroll" />
+                                <input type="hidden" asp-for="AutoScrollSpeed" />
+                                <input type="hidden" asp-for="EmailNotifications" />
+                                <input type="hidden" asp-for="NewChapterNotifications" />
+                                <input type="hidden" asp-for="CommentNotifications" />
+                                
+                                <div class="mb-6">
+                                    <label class="block text-gray-700 mb-3 text-sm font-medium">Tercih Ettiğiniz Türler</label>
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                        @foreach (var genre in ViewBag.AvailableGenres)
+                                        {
+                                            <label class="relative flex items-start">
+                                                <div class="flex items-center h-5">
+                                                    <input type="checkbox" name="PreferredGenres" value="@genre" 
+                                                           class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                                                           @(Model.PreferredGenres != null && Model.PreferredGenres.Contains(genre) ? "checked" : "") />
+                                                </div>
+                                                <div class="ml-3 text-sm">
+                                                    <span class="text-gray-700">@genre</span>
+                                                </div>
+                                            </label>
+                                        }
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn-primary">Kaydet</button>
+                            </form>
+                        </div>
+                        
+                        <!-- Favorilerim -->
+                        <div class="hidden" id="favoriler">
+                            <h3 class="text-xl font-semibold mb-6">Favorilerim</h3>
+                            
+                            @if (Model.Favorites != null && Model.Favorites.Any())
+                            {
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    @foreach (var favorite in Model.Favorites)
+                                    {
+                                        <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex">
+                                            <div class="w-1/3">
+                                                @if (!string.IsNullOrEmpty(favorite.CoverImage))
+                                                {
+                                                    <img src="~/webtoons/@favorite.FolderName/@favorite.CoverImage" 
+                                                         class="w-full h-full object-cover" 
+                                                         alt="@favorite.Title" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                                                        <i class="bi bi-image text-2xl text-gray-400"></i>
+                                                    </div>
+                                                }
+                                            </div>
+                                            <div class="w-2/3 p-3">
+                                                <h5 class="font-medium text-gray-900 mb-1">@favorite.Title</h5>
+                                                <p class="text-sm text-gray-500 mb-3 line-clamp-2">@favorite.Description</p>
+                                                <div class="flex space-x-2">
+                                                    <a asp-controller="Webtoon" asp-action="Details" asp-route-name="@favorite.FolderName" 
+                                                       class="btn-primary text-xs py-1 px-2">
+                                                        <i class="bi bi-book mr-1"></i> Oku
+                                                    </a>
+                                                    <form asp-action="RemoveFromFavorites" asp-route-webtoonId="@favorite.Id" method="post">
+                                                        <button type="submit" class="btn-outline text-danger border-danger hover:bg-danger-50 text-xs py-1 px-2">
+                                                            <i class="bi bi-trash mr-1"></i> Kaldır
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 text-blue-700">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <i class="bi bi-info-circle"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p>Henüz favori webtoon eklemediniz. Webtoon detay sayfalarından favorilere ekleyebilirsiniz.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-6 flex justify-center">
+                                    <a asp-controller="WebtoonList" asp-action="Index" class="btn-primary">
+                                        <i class="bi bi-grid-3x3-gap mr-2"></i> Webtoonları Keşfet
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                        
+                        <!-- Okuma Listem -->
+                        <div class="hidden" id="okuma-listesi">
+                            <h3 class="text-xl font-semibold mb-6">Okuma Listem</h3>
+                            
+                            @if (Model.ReadingHistory != null && Model.ReadingHistory.Any())
+                            {
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Webtoon</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Son Okunan Bölüm</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            @foreach (var history in Model.ReadingHistory)
+                                            {
+                                                <tr>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <div class="flex items-center">
+                                                            <div class="flex-shrink-0 h-10 w-10">
+                                                                @if (!string.IsNullOrEmpty(history.WebtoonCover))
+                                                                {
+                                                                    <img src="~/webtoons/@history.WebtoonFolder/@history.WebtoonCover" class="h-10 w-10 rounded-md object-cover" alt="@history.WebtoonTitle" />
+                                                                }
+                                                                else
+                                                                {
+                                                                    <div class="h-10 w-10 rounded-md bg-gray-200 flex items-center justify-center">
+                                                                        <i class="bi bi-book text-gray-400"></i>
+                                                                    </div>
+                                                                }
+                                                            </div>
+                                                            <div class="ml-4">
+                                                                <div class="text-sm font-medium text-gray-900">@history.WebtoonTitle</div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <div class="text-sm text-gray-900">@history.ChapterName</div>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <div class="text-sm text-gray-500">@history.LastReadDate.ToString("dd.MM.yyyy HH:mm")</div>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <a asp-controller="Reader" asp-action="Read" asp-route-name="@history.WebtoonFolder" asp-route-chapter="@history.ChapterName" class="btn-primary text-xs py-1 px-2">
+                                                            <i class="bi bi-book mr-1"></i> Okumaya Devam Et
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 text-blue-700">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <i class="bi bi-info-circle"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p>Henüz hiç webtoon okumamışsınız.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-6 flex justify-center">
+                                    <a asp-controller="WebtoonList" asp-action="Index" class="btn-primary">
+                                        <i class="bi bi-grid-3x3-gap mr-2"></i> Webtoonları Keşfet
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab kontrolü
+            const tabButtons = document.querySelectorAll('[data-tabs-target]');
+            const tabContents = document.querySelectorAll('#tabContent > div');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-tabs-target');
+                    
+                    // Tüm sekme butonlarını pasif yap
+                    tabButtons.forEach(btn => {
+                        btn.classList.remove('border-primary', 'bg-primary-50', 'text-primary-dark');
+                        btn.classList.add('border-transparent');
+                    });
+                    
+                    // Tıklanan sekme butonunu aktif yap
+                    this.classList.add('border-primary', 'bg-primary-50', 'text-primary-dark');
+                    this.classList.remove('border-transparent');
+                    
+                    // Tüm içerikleri gizle
+                    tabContents.forEach(content => {
+                        content.classList.add('hidden');
+                        content.classList.remove('block');
+                    });
+                    
+                    // İlgili içeriği göster
+                    const targetContent = document.getElementById(targetId);
+                    if (targetContent) {
+                        targetContent.classList.remove('hidden');
+                        targetContent.classList.add('block');
+                    }
+                });
+            });
+            
+            // Otomatik kaydırma göster/gizle
+            const autoScrollCheckbox = document.getElementById('autoScroll');
+            const scrollSpeedDiv = document.getElementById('scrollSpeedDiv');
+            
+            if (autoScrollCheckbox && scrollSpeedDiv) {
+                autoScrollCheckbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        scrollSpeedDiv.style.display = 'block';
+                    } else {
+                        scrollSpeedDiv.style.display = 'none';
+                    }
+                });
+            }
+        });
+    </script>
+} 

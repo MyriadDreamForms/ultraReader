@@ -1,0 +1,58 @@
+@inject SignInManager<IdentityUser> SignInManager
+@{
+    var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+}
+
+<ul class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+    <li class="border-b border-gray-200 dark:border-gray-700 @ManageNavPages.IndexNavClass(ViewContext)">
+        <a class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" id="profile" asp-page="./Index">
+            <div class="flex items-center">
+                <i class="bi bi-person text-lg mr-3 text-primary"></i>
+                <span>Profil</span>
+            </div>
+        </a>
+    </li>
+    <li class="border-b border-gray-200 dark:border-gray-700 @ManageNavPages.EmailNavClass(ViewContext)">
+        <a class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" id="email" asp-page="./Email">
+            <div class="flex items-center">
+                <i class="bi bi-envelope text-lg mr-3 text-primary"></i>
+                <span>E-posta</span>
+            </div>
+        </a>
+    </li>
+    <li class="border-b border-gray-200 dark:border-gray-700 @ManageNavPages.ChangePasswordNavClass(ViewContext)">
+        <a class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" id="change-password" asp-page="./ChangePassword">
+            <div class="flex items-center">
+                <i class="bi bi-key text-lg mr-3 text-primary"></i>
+                <span>Şifre</span>
+            </div>
+        </a>
+    </li>
+    @if (hasExternalLogins)
+    {
+        <li class="border-b border-gray-200 dark:border-gray-700 @ManageNavPages.ExternalLoginsNavClass(ViewContext)">
+            <a class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" id="external-logins" asp-page="./ExternalLogins">
+                <div class="flex items-center">
+                    <i class="bi bi-box-arrow-in-right text-lg mr-3 text-primary"></i>
+                    <span>Harici Girişler</span>
+                </div>
+            </a>
+        </li>
+    }
+    <li class="border-b border-gray-200 dark:border-gray-700 @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)">
+        <a class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" id="two-factor" asp-page="./TwoFactorAuthentication">
+            <div class="flex items-center">
+                <i class="bi bi-shield-lock text-lg mr-3 text-primary"></i>
+                <span>İki Faktörlü Kimlik Doğrulama</span>
+            </div>
+        </a>
+    </li>
+    <li class="@ManageNavPages.PersonalDataNavClass(ViewContext)">
+        <a class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" id="personal-data" asp-page="./PersonalData">
+            <div class="flex items-center">
+                <i class="bi bi-person-badge text-lg mr-3 text-primary"></i>
+                <span>Kişisel Veriler</span>
+            </div>
+        </a>
+    </li>
+</ul> 

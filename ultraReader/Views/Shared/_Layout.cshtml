@@ -1,0 +1,95 @@
+﻿<!DOCTYPE html>
+<html lang="tr" class="h-full">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ultraReader</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700&family=JetBrains+Mono&family=Bangers&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS ve diğer stil dosyaları -->
+    <link rel="stylesheet" href="~/lib/tailwindcss/tailwind.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/css/styles.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <partial name="_Styles" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col transition-colors duration-200">
+    <header class="bg-gradient-to-r from-primary-900 to-primary-800 dark:from-gray-950 dark:to-gray-900 text-white shadow-md">
+        <nav class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <a class="text-xl font-bold text-white font-heading" asp-controller="WebtoonList" asp-action="Index">
+                    <span class="text-primary-300">ultra</span>Reader
+                </a>
+                <button id="mobile-menu-button" class="md:hidden focus:outline-none">
+                    <i class="bi bi-list text-2xl"></i>
+                </button>
+                <div class="hidden md:flex items-center space-x-4" id="navbar-menu">
+                    <ul class="flex space-x-6">
+                        <li>
+                            <a class="hover:text-primary-300 transition-colors" asp-controller="WebtoonList" asp-action="Index">
+                                <i class="bi bi-house-door mr-1"></i> Anasayfa
+                            </a>
+                        </li>
+                        @if (User?.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                            <li>
+                                <a class="hover:text-primary-300 transition-colors" asp-controller="User" asp-action="Favorites">
+                                    <i class="bi bi-heart mr-1"></i> Favorilerim
+                                </a>
+                            </li>
+                            <li>
+                                <a class="hover:text-primary-300 transition-colors" asp-controller="User" asp-action="ReadingHistory">
+                                    <i class="bi bi-clock-history mr-1"></i> Okuma Geçmişim
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                    <ul class="flex space-x-4 ml-4 border-l border-gray-600 pl-4">
+                        <li>
+                            <button id="theme-switcher" class="flex items-center hover:text-primary-300 transition-colors">
+                                <i id="theme-icon" class="bi bi-moon-fill"></i>
+                                <span id="theme-text" class="ml-1 hidden md:inline">Karanlık Tema</span>
+                            </button>
+                        </li>
+                        <partial name="_LoginPartial" />
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container mx-auto px-4 py-8 flex-grow">
+        <main role="main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="bg-gray-100 dark:bg-gray-800 border-t dark:border-gray-700 py-6 mt-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="text-gray-600 dark:text-gray-300 mb-4 md:mb-0">
+                    &copy; 2025 - <span class="font-bold">ultraReader</span> - Tüm Hakları Saklıdır
+                </div>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-500 hover:text-primary transition-colors">
+                        <i class="bi bi-github text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-500 hover:text-primary transition-colors">
+                        <i class="bi bi-twitter text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-500 hover:text-primary transition-colors">
+                        <i class="bi bi-discord text-xl"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/theme-switcher.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

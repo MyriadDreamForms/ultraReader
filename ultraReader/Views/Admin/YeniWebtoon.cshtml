@@ -1,0 +1,72 @@
+@model ultraReader.Models.DTOs.WebtoonCreateViewModel
+@{
+    ViewData["Title"] = "Yeni Webtoon Ekle";
+}
+
+<div class="container mt-4">
+    <h1>Yeni Webtoon Ekle</h1>
+    <p>
+        <a asp-action="WebtoonYonetim" class="btn btn-secondary mb-3">
+            <i class="bi bi-arrow-left"></i> Webtoon Yönetimine Dön
+        </a>
+    </p>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Webtoon Bilgileri</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="YeniWebtoon" method="post" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label"></label>
+                    <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label"></label>
+                    <textarea asp-for="Description" class="form-control" rows="5"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Author" class="form-label"></label>
+                    <input asp-for="Author" class="form-control" />
+                    <span asp-validation-for="Author" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Genres" class="form-label"></label>
+                    <input asp-for="Genres" class="form-control" placeholder="Aksiyon, Macera, Romantik..." />
+                    <div class="form-text">Türleri virgülle ayırarak girin</div>
+                    <span asp-validation-for="Genres" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Status" class="form-label"></label>
+                    <select asp-for="Status" class="form-select">
+                        <option value="Devam Ediyor">Devam Ediyor</option>
+                        <option value="Tamamlandı">Tamamlandı</option>
+                        <option value="Durduruldu">Durduruldu</option>
+                    </select>
+                    <span asp-validation-for="Status" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label for="coverImage" class="form-label">Kapak Görseli</label>
+                    <input type="file" class="form-control" id="coverImage" name="coverImage" accept="image/*" />
+                    <div class="form-text">PNG, JPG veya JPEG formatında bir görsel seçin. Maksimum boyut: 5MB</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Webtoon Ekle</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/admin-forms.js"></script>
+} 

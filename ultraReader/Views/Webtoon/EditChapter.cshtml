@@ -1,0 +1,225 @@
+@model ultraReader.Models.DTOs.EditChapterViewModel
+@{
+    ViewData["Title"] = "Bölüm Düzenle";
+}
+
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">Bölüm Düzenle</h1>
+    <p>
+        <a asp-controller="Webtoon" asp-action="Details" asp-route-name="@Model.WebtoonName" class="btn-secondary mb-4 inline-block">
+            <i class="bi bi-arrow-left mr-1"></i> Webtoon Detaylarına Dön
+        </a>
+    </p>
+
+    <div class="card">
+        <div class="bg-primary text-white p-4">
+            <h5 class="text-lg font-medium mb-0">@Model.ChapterName Düzenleme</h5>
+        </div>
+        <div class="p-6">
+            <form asp-action="EditChapter" method="post" enctype="multipart/form-data">
+                <input type="hidden" asp-for="WebtoonName" />
+                <input type="hidden" asp-for="ChapterName" />
+                <div asp-validation-summary="ModelOnly" class="text-red-500"></div>
+
+                <div class="mb-4">
+                    <label asp-for="NewChapterName" class="form-label">Yeni Bölüm Adı</label>
+                    <input asp-for="NewChapterName" class="form-input w-full mt-1" placeholder="Bölüm adını değiştirmek istiyorsanız doldurun" />
+                    <span asp-validation-for="NewChapterName" class="text-red-500 text-sm"></span>
+                    <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">Boş bırakırsanız bölüm adı değişmeyecektir.</div>
+                </div>
+                
+                <div class="mb-4">
+                    <label asp-for="ChapterNumber" class="form-label">Bölüm Numarası</label>
+                    <input asp-for="ChapterNumber" class="form-input w-full mt-1" type="number" min="1" />
+                    <span asp-validation-for="ChapterNumber" class="text-red-500 text-sm"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="ChapterTitle" class="form-label">Bölüm Başlığı</label>
+                    <input asp-for="ChapterTitle" class="form-input w-full mt-1" />
+                    <span asp-validation-for="ChapterTitle" class="text-red-500 text-sm"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="ChapterDescription" class="form-label">Bölüm Açıklaması</label>
+                    <textarea asp-for="ChapterDescription" class="form-textarea w-full mt-1" rows="3"></textarea>
+                    <span asp-validation-for="ChapterDescription" class="text-red-500 text-sm"></span>
+                </div>
+
+                <div class="mb-4 flex items-center">
+                    <input asp-for="IsPublished" class="form-checkbox mr-2" />
+                    <label asp-for="IsPublished" class="inline-block">Yayında</label>
+                </div>
+                
+                <div class="mb-4 flex items-center">
+                    <input asp-for="SortImagesAlphabetically" class="form-checkbox mr-2" />
+                    <label asp-for="SortImagesAlphabetically" class="inline-block">Resimleri Otomatik Sırala</label>
+                    <div class="text-sm text-gray-500 dark:text-gray-400 ml-6">İşaretlerseniz, yeni eklenen resimler otomatik olarak isimlerine göre sıralanır.</div>
+                </div>
+
+                <h4 class="text-xl font-medium mb-3 mt-6">Mevcut Resimler</h4>
+                <div class="alert-info mb-4">
+                    <i class="bi bi-info-circle mr-2"></i> Resimleri sıralamak için sürükleyip bırakabilirsiniz.
+                </div>
+                <div class="mb-6">
+                    <div class="overflow-x-auto">
+                        <table class="table-default w-full">
+                            <thead class="table-header">
+                                <tr>
+                                    <th class="table-header-cell">Resim</th>
+                                    <th class="table-header-cell">Dosya Adı</th>
+                                    <th class="table-header-cell">Yeni Adı</th>
+                                    <th class="table-header-cell">Sıra</th>
+                                    <th class="table-header-cell">İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="existingImagesContainer" class="table-body">
+                                @for (int i = 0; i < Model.ExistingImages.Count; i++)
+                                {
+                                    var image = Model.ExistingImages[i];
+                                    <tr class="image-row table-row" data-index="@i">
+                                        <td class="table-cell drag-handle">
+                                            <img src="~/webtoons/@Model.WebtoonName/@Model.ChapterName/@image.FileName" class="max-h-20 rounded" alt="@image.FileName">
+                                            <input type="hidden" asp-for="ExistingImages[i].FileName" />
+                                            <i class="bi bi-grip-vertical text-gray-400 ml-2 cursor-move"></i>
+                                        </td>
+                                        <td class="table-cell">@image.FileName</td>
+                                        <td class="table-cell">
+                                            <input asp-for="ExistingImages[i].NewName" class="form-input" value="@image.FileName" />
+                                        </td>
+                                        <td class="table-cell">
+                                            <input asp-for="ExistingImages[i].OrderIndex" class="form-input order-index" type="number" min="1" value="@(i+1)" />
+                                        </td>
+                                        <td class="table-cell">
+                                            <div class="flex items-center">
+                                                <input asp-for="ExistingImages[i].Delete" class="form-checkbox mr-2" />
+                                                <label asp-for="ExistingImages[i].Delete">Sil</label>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="flex mt-3 space-x-2">
+                        <button type="button" id="sortButton" class="btn-secondary">
+                            <i class="bi bi-sort-alpha-down mr-1"></i> Sıra Numarasına Göre Sırala
+                        </button>
+                        <button type="button" id="resetOrder" class="btn-outline border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200">
+                            <i class="bi bi-arrow-repeat mr-1"></i> Orijinal Sıralamaya Dön
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label asp-for="NewImages" class="form-label">Yeni Resimler Ekle</label>
+                    <input asp-for="NewImages" class="form-input w-full mt-1" type="file" multiple accept="image/*" />
+                    <span asp-validation-for="NewImages" class="text-red-500 text-sm"></span>
+                    <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        Sıralamanın düzgün olması için, dosyaları sayısal olarak adlandırın (1.jpg, 2.jpg, vb.).
+                        Kabul edilen formatlar: JPG, JPEG, PNG, GIF, WEBP
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <button type="submit" class="btn-primary w-full">
+                        <i class="bi bi-save mr-1"></i> Değişiklikleri Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <!-- jQuery UI eklentisi -->
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js" 
+            integrity="sha256-lSjKY0/srUM9BE3dPm+c4fBo1dky2v27Gdjm2uoZaL0=" 
+            crossorigin="anonymous"></script>
+    
+    <style>
+        .image-row.ui-sortable-helper {
+            display: table;
+            @@apply bg-gray-50 dark:bg-gray-700 shadow-lg;
+        }
+        .ui-sortable-placeholder {
+            visibility: visible !important;
+            @@apply bg-gray-100/50 dark:bg-gray-800/50 h-24;
+        }
+        .drag-handle {
+            cursor: move;
+        }
+    </style>
+    
+    <script>
+        $(document).ready(function() {
+            // Mevcut sıralamayı yedekle
+            const originalOrder = [];
+            $('.image-row').each(function(index) {
+                originalOrder.push({
+                    element: $(this),
+                    index: index
+                });
+            });
+            
+            // Sürükle & Bırak için jQuery UI
+            $("#existingImagesContainer").sortable({
+                handle: ".drag-handle",
+                cursor: "move",
+                axis: "y",
+                containment: "parent",
+                tolerance: "pointer",
+                placeholder: "ui-state-highlight",
+                update: function(event, ui) {
+                    // Sıra numaralarını güncelle
+                    updateOrderIndices();
+                }
+            });
+            
+            // Sıra numarası değişince otomatik sıralama
+            $(document).on('change', '.order-index', function() {
+                $("#sortButton").click();
+            });
+            
+            // Resimleri sıralama
+            $('#sortButton').click(function() {
+                var rows = $('#existingImagesContainer tr').get();
+                
+                rows.sort(function(a, b) {
+                    var orderA = parseInt($(a).find('input.order-index').val());
+                    var orderB = parseInt($(b).find('input.order-index').val());
+                    return orderA - orderB;
+                });
+                
+                $.each(rows, function(index, row) {
+                    $('#existingImagesContainer').append(row);
+                });
+                
+                // Sıra numaralarını güncelle
+                updateOrderIndices();
+            });
+            
+            // Orijinal sıralamaya dön
+            $('#resetOrder').click(function() {
+                // Tabloyu orijinal sıralamaya göre yeniden oluştur
+                const tbody = $('#existingImagesContainer');
+                tbody.empty();
+                
+                originalOrder.forEach(function(item) {
+                    tbody.append(item.element);
+                });
+                
+                // Sıra numaralarını güncelle
+                updateOrderIndices();
+            });
+            
+            // Sıra numaralarını güncelleme
+            function updateOrderIndices() {
+                $('.image-row').each(function(index) {
+                    $(this).find('.order-index').val(index + 1);
+                });
+            }
+        });
+    </script>
+} 

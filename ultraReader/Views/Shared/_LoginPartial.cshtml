@@ -1,0 +1,44 @@
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <div class="relative" x-data="{ open: false }">
+        <button @@click="open = !open" class="flex items-center hover:text-primary transition-colors">
+            <i class="bi bi-person-circle mr-1"></i> @(User.Identity?.Name ?? "Kullanıcı")
+            <i class="bi bi-chevron-down ml-1 text-xs"></i>
+        </button>
+        <div x-show="open" @@click.away="open = false" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10" 
+             x-transition:enter="transition ease-out duration-100" 
+             x-transition:enter-start="transform opacity-0 scale-95" 
+             x-transition:enter-end="transform opacity-100 scale-100">
+            <a class="block px-4 py-2 text-gray-800 hover:bg-gray-100" asp-area="Identity" asp-page="/Account/Manage/Index">
+                Profil
+            </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a class="block px-4 py-2 text-gray-800 hover:bg-gray-100" asp-controller="Admin" asp-action="Index">
+                    Admin Paneli
+                </a>
+            }
+            @if (User.IsInRole("Moderator"))
+            {
+                <a class="block px-4 py-2 text-gray-800 hover:bg-gray-100" asp-controller="Moderator" asp-action="Index">
+                    Moderatör Paneli
+                </a>
+            }
+            <div class="border-t border-gray-100 my-1"></div>
+            <form class="block" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "WebtoonList", new { area = "" })">
+                <button type="submit" class="w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100">Çıkış Yap</button>
+            </form>
+        </div>
+    </div>
+}
+else
+{
+    <div class="flex space-x-4">
+        <a class="hover:text-primary transition-colors" asp-area="Identity" asp-page="/Account/Register">Kayıt Ol</a>
+        <a class="hover:text-primary transition-colors" asp-area="Identity" asp-page="/Account/Login">Giriş Yap</a>
+    </div>
+} 

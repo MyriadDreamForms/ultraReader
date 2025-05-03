@@ -1,0 +1,25 @@
+{
+  "Id": null,
+  "Title": "Demo Webtoon",
+  "Author": "Test Yazar",
+  "Genres": [
+    "Aksiyon",
+    "Fantezi",
+    "Macera"
+  ],
+  "Description": "Bu bir demo webtoon\u0027dur. UltraReader uygulamas\u0131n\u0131 test etmek i\u00E7in olu\u015Fturulmu\u015Ftur.",
+  "Status": "Devam Ediyor",
+  "CoverImage": "cover.jpg",
+  "FolderName": "DemoWebtoon",
+  "CreatedAt": "0001-01-01T00:00:00",
+  "CreatedBy": null,
+  "UpdatedAt": null,
+  "UpdatedBy": null,
+  "IsApproved": true,
+  "ApprovedAt": "2025-05-02T17:40:30.3724025Z",
+  "ApprovedBy": "admin@ultrareader.com",
+  "IsRejected": false,
+  "RejectedAt": null,
+  "RejectedBy": null,
+  "RejectReason": null
+}

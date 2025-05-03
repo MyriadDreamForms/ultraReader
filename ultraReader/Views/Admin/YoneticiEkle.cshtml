@@ -1,0 +1,76 @@
+@model ultraReader.Models.DTOs.AdminUserCreateViewModel
+
+@{
+    ViewData["Title"] = "Yönetici Ekle";
+}
+
+<div class="container mx-auto px-4 py-6">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+            <div class="bg-primary dark:bg-primary-900 text-white px-6 py-4">
+                <h1 class="text-xl md:text-2xl font-semibold">Yeni Yönetici Ekle</h1>
+            </div>
+            <div class="p-6">
+                <form asp-action="YoneticiEkle" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4" role="alert"></div>
+                    
+                    <div class="mb-4">
+                        <label asp-for="UserName" class="form-label">Kullanıcı Adı</label>
+                        <input asp-for="UserName" class="form-input" placeholder="ornek_kullanici" />
+                        <span asp-validation-for="UserName" class="text-danger text-sm"></span>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label asp-for="Email" class="form-label">E-posta Adresi</label>
+                        <input asp-for="Email" type="email" class="form-input" placeholder="kullanici@ornek.com" />
+                        <span asp-validation-for="Email" class="text-danger text-sm"></span>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label asp-for="Password" class="form-label">Şifre</label>
+                        <input asp-for="Password" type="password" class="form-input" placeholder="••••••••" />
+                        <span asp-validation-for="Password" class="text-danger text-sm"></span>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label asp-for="ConfirmPassword" class="form-label">Şifre Onayı</label>
+                        <input asp-for="ConfirmPassword" type="password" class="form-input" placeholder="••••••••" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger text-sm"></span>
+                    </div>
+                    
+                    <div class="mb-6 space-y-4">
+                        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">Yetki Seçenekleri</h3>
+                        <div class="flex items-center">
+                            <input id="IsAdmin" asp-for="IsAdmin" type="checkbox" class="form-checkbox" />
+                            <label for="IsAdmin" class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Yönetici (Admin)
+                                <span class="block text-xs text-gray-500 dark:text-gray-400 mt-1">Tam sistem erişimi, içerik ve kullanıcı yönetimi yetkisi.</span>
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input id="IsModerator" asp-for="IsModerator" type="checkbox" class="form-checkbox" />
+                            <label for="IsModerator" class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Moderatör
+                                <span class="block text-xs text-gray-500 dark:text-gray-400 mt-1">İçerik onayı ve yorumları yönetme yetkisi.</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <button type="submit" class="btn-primary w-full">
+                            <i class="bi bi-person-plus-fill mr-2"></i>Yönetici Ekle
+                        </button>
+                        <a asp-action="KullaniciYonetim" class="btn-secondary w-full flex justify-center items-center">
+                            <i class="bi bi-arrow-left mr-2"></i>Kullanıcı Listesine Dön
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+} 
