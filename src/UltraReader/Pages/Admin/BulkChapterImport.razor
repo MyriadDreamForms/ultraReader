@@ -1,0 +1,584 @@
+@page "/admin/series/{SeriesId:int}/chapters/bulk-import"
+@rendermode InteractiveServer
+@using UltraReader.Services
+@using UltraReader.Services.DTOs
+@inject IChapterService ChapterService
+@inject ISeriesService SeriesService
+@inject IPageService PageService
+@inject IImageService ImageService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>Toplu Bölüm Ekle - UltraReader</PageTitle>
+
+<div class="admin-header">
+    <div>
+        <h1>Toplu Bölüm Ekle</h1>
+        @if (seriesTitle != null)
+        {
+            <p class="text-muted">@seriesTitle</p>
+        }
+    </div>
+    <a href="/admin/series/@SeriesId/chapters" class="btn btn-outline">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Geri
+    </a>
+</div>
+
+<div class="form-container">
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert alert-success">@successMessage</div>
+    }
+
+    <div class="info-box">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <div>
+            <p><strong>Klasör yapısı ile birden fazla bölüm ekleyin</strong></p>
+            <p class="text-muted">Her klasör bir bölüm olarak oluşturulur. Klasör adı bölüm numarası olarak kullanılır.<br/>
+            Örnek: <code>1</code>, <code>2</code>, <code>3</code> veya <code>Bölüm 1</code>, <code>Bölüm 2</code></p>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <div class="section-header">
+            <h3 class="form-section-title">Dosyaları Seçin</h3>
+        </div>
+
+        <div class="upload-zone">
+            <label for="bulkFilePicker" style="cursor: pointer; display: flex; flex-direction: column; align-items: center;">
+                <InputFile OnChange="OnFilesSelected" multiple accept="image/*" class="input-file-hidden" id="bulkFilePicker" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                    <line x1="12" y1="11" x2="12" y2="17"></line>
+                    <line x1="9" y1="14" x2="15" y2="14"></line>
+                </svg>
+                <p>Bölüm resimlerini seçmek için tıklayın</p>
+                <p class="text-muted">Dosya adları: <code>1_001.jpg</code>, <code>1_002.jpg</code>, <code>2_001.jpg</code> ... şeklinde</p>
+                <p class="text-muted">(Bölüm numarası_Sayfa numarası formatı)</p>
+            </label>
+        </div>
+    </div>
+
+    @if (pendingChapters.Count > 0)
+    {
+        <div class="form-section">
+            <div class="section-header">
+                <h3 class="form-section-title">Eklenecek Bölümler (@pendingChapters.Count bölüm)</h3>
+                <button type="button" class="btn btn-outline btn-sm" @onclick="ClearAll">
+                    Tümünü Temizle
+                </button>
+            </div>
+
+            <div class="chapters-preview-list">
+                @foreach (var chapter in pendingChapters.OrderBy(c => c.ChapterNumber))
+                {
+                    <div class="chapter-preview-card">
+                        <div class="chapter-preview-header">
+                            <div class="chapter-preview-info">
+                                <span class="chapter-number-badge">Bölüm @chapter.ChapterNumber</span>
+                                <span class="page-count">@chapter.Pages.Count sayfa</span>
+                            </div>
+                            <button type="button" class="btn btn-icon btn-danger-ghost" @onclick="() => RemoveChapter(chapter)">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="chapter-preview-pages">
+                            @foreach (var pageItem in chapter.Pages.Take(6))
+                            {
+                                <div class="preview-thumb">
+                                    <img src="@pageItem.PreviewUrl" alt="@($"Sayfa {pageItem.Order}")" />
+                                    @if (chapter.Pages.Count > 6 && pageItem == chapter.Pages.Take(6).Last())
+                                    {
+                                        <div class="more-pages-overlay">@($"+{chapter.Pages.Count - 6}")</div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="/admin/series/@SeriesId/chapters" class="btn btn-outline">İptal</a>
+            <button type="button" class="btn btn-primary" @onclick="ImportChapters" disabled="@isImporting">
+                @if (isImporting)
+                {
+                    <span class="loading-spinner" style="width: 16px; height: 16px; margin-right: 0.5rem;"></span>
+                    <span>İçe Aktarılıyor... (@importedCount/@pendingChapters.Count)</span>
+                }
+                else
+                {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>@pendingChapters.Count Bölümü İçe Aktar</span>
+                }
+            </button>
+        </div>
+    }
+</div>
+
+<style>
+    .info-box {
+        display: flex;
+        gap: 1rem;
+        padding: 1.25rem;
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: 12px;
+        color: #60a5fa;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-box svg {
+        flex-shrink: 0;
+    }
+
+    .info-box p {
+        margin: 0;
+    }
+
+    .info-box p + p {
+        margin-top: 0.5rem;
+    }
+
+    .info-box code {
+        background: rgba(255,255,255,0.1);
+        padding: 0.1rem 0.4rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+    }
+
+    .form-section {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border-color);
+    }
+
+    .form-section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--text-primary);
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .upload-zone {
+        border: 2px dashed var(--border-color);
+        border-radius: 12px;
+        padding: 3rem 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: var(--text-secondary);
+    }
+
+    .upload-zone:hover {
+        border-color: var(--primary);
+        background: rgba(99, 102, 241, 0.05);
+        color: var(--primary);
+    }
+
+    .upload-zone svg {
+        margin-bottom: 1rem;
+        opacity: 0.7;
+    }
+
+    .upload-zone p {
+        margin: 0.25rem 0;
+    }
+
+    .input-file-hidden {
+        display: none;
+    }
+
+    .chapters-preview-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .chapter-preview-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .chapter-preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background: var(--card-bg);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .chapter-preview-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .chapter-number-badge {
+        font-weight: 600;
+        color: var(--primary);
+    }
+
+    .page-count {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    .chapter-preview-pages {
+        display: flex;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        overflow-x: auto;
+    }
+
+    .preview-thumb {
+        position: relative;
+        flex-shrink: 0;
+        width: 60px;
+        height: 90px;
+        border-radius: 4px;
+        overflow: hidden;
+        background: var(--bg-primary);
+    }
+
+    .preview-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .more-pages-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-danger-ghost {
+        background: transparent;
+        color: var(--text-secondary);
+    }
+
+    .btn-danger-ghost:hover {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        padding-top: 1rem;
+    }
+
+    .alert-success {
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        color: #22c55e;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .alert-danger {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public int SeriesId { get; set; }
+
+    private string? seriesTitle;
+    private string? errorMessage;
+    private string? successMessage;
+    private bool isImporting = false;
+    private int importedCount = 0;
+
+    private List<PendingChapter> pendingChapters = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var series = await SeriesService.GetSeriesDetailByIdAsync(SeriesId);
+        seriesTitle = series?.Title;
+    }
+
+    private async Task OnFilesSelected(InputFileChangeEventArgs e)
+    {
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+            var files = e.GetMultipleFiles(1000);
+            
+            // Dosyaları bölüm numarasına göre grupla
+            // Format: "1_001.jpg" veya "1/001.jpg" veya sadece "001.jpg"
+            var filesByChapter = new Dictionary<decimal, List<(string name, int pageNum, IBrowserFile file)>>();
+            
+            foreach (var file in files)
+            {
+                if (!file.ContentType.StartsWith("image/")) continue;
+
+                var fileName = file.Name;
+                decimal chapterNum = 1;
+                int pageNum = 0;
+                
+                // Önce klasör yapısını kontrol et (folder/file.jpg)
+                var pathParts = fileName.Split('/');
+                if (pathParts.Length > 1)
+                {
+                    // Klasör adından bölüm numarası
+                    if (decimal.TryParse(pathParts[0], out var folderChapterNum))
+                    {
+                        chapterNum = folderChapterNum;
+                    }
+                    else
+                    {
+                        var match = System.Text.RegularExpressions.Regex.Match(pathParts[0], @"(\d+(?:\.\d+)?)");
+                        if (match.Success && decimal.TryParse(match.Value, out var extractedNum))
+                            chapterNum = extractedNum;
+                    }
+                    fileName = pathParts[^1];
+                    
+                    // Dosya adından sayfa numarası
+                    var pageMatch = System.Text.RegularExpressions.Regex.Match(fileName, @"(\d+)");
+                    if (pageMatch.Success)
+                        int.TryParse(pageMatch.Value, out pageNum);
+                }
+                else
+                {
+                    // "1_001.jpg" veya "001_001.jpg" formatı
+                    var underscoreMatch = System.Text.RegularExpressions.Regex.Match(fileName, @"^(\d+(?:\.\d+)?)_(\d+)");
+                    if (underscoreMatch.Success)
+                    {
+                        decimal.TryParse(underscoreMatch.Groups[1].Value, out chapterNum);
+                        int.TryParse(underscoreMatch.Groups[2].Value, out pageNum);
+                    }
+                    else
+                    {
+                        // Sadece sayfa numarası varsa (001.jpg, 002.jpg)
+                        var numMatch = System.Text.RegularExpressions.Regex.Match(fileName, @"(\d+)");
+                        if (numMatch.Success)
+                            int.TryParse(numMatch.Value, out pageNum);
+                    }
+                }
+
+                if (!filesByChapter.ContainsKey(chapterNum))
+                {
+                    filesByChapter[chapterNum] = [];
+                }
+                filesByChapter[chapterNum].Add((fileName, pageNum, file));
+            }
+
+            // Mevcut bölümlerin max numarasını al
+            var existingChapters = await ChapterService.GetChaptersAsync(SeriesId);
+            var existingNums = existingChapters.Select(c => c.Number).ToHashSet();
+
+            // Her grup için bir bölüm oluştur
+            foreach (var group in filesByChapter.OrderBy(f => f.Key))
+            {
+                var chapterNumber = group.Key;
+                
+                // Aynı numara zaten pending'de varsa veya veritabanında varsa atla
+                if (pendingChapters.Any(c => c.ChapterNumber == chapterNumber) || existingNums.Contains(chapterNumber))
+                {
+                    // Yeni numara bul
+                    var allNums = pendingChapters.Select(c => c.ChapterNumber).Concat(existingNums).ToHashSet();
+                    while (allNums.Contains(chapterNumber))
+                    {
+                        chapterNumber++;
+                    }
+                }
+
+                var pendingChapter = new PendingChapter
+                {
+                    ChapterNumber = chapterNumber,
+                    FolderName = group.Key.ToString()
+                };
+
+                // Sayfa numarasına göre sırala, sonra dosya adına göre
+                var sortedFiles = group.Value
+                    .OrderBy(f => f.pageNum)
+                    .ThenBy(f => f.name, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                var pageOrder = 0;
+                foreach (var (fileName, _, file) in sortedFiles)
+                {
+                    try
+                    {
+                        using var stream = file.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024);
+                        using var ms = new MemoryStream();
+                        await stream.CopyToAsync(ms);
+                        var data = ms.ToArray();
+
+                        pageOrder++;
+                        var pendingPage = new PendingPage
+                        {
+                            Order = pageOrder,
+                            FileName = fileName,
+                            Data = data,
+                            ContentType = file.ContentType,
+                            PreviewUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(data)}"
+                        };
+                        pendingChapter.Pages.Add(pendingPage);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error loading {fileName}: {ex.Message}");
+                    }
+                }
+
+                if (pendingChapter.Pages.Count > 0)
+                {
+                    pendingChapters.Add(pendingChapter);
+                }
+            }
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Dosyalar yüklenirken hata oluştu: {ex.Message}";
+        }
+    }
+
+    private void RemoveChapter(PendingChapter chapter)
+    {
+        pendingChapters.Remove(chapter);
+    }
+
+    private void ClearAll()
+    {
+        pendingChapters.Clear();
+    }
+
+    private async Task ImportChapters()
+    {
+        if (pendingChapters.Count == 0) return;
+
+        isImporting = true;
+        importedCount = 0;
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+            foreach (var chapter in pendingChapters.OrderBy(c => c.ChapterNumber))
+            {
+                // Bölümü oluştur
+                var createCommand = new CreateChapterCommand
+                {
+                    Number = chapter.ChapterNumber,
+                    Title = null
+                };
+                var newChapterId = await ChapterService.CreateChapterAsync(SeriesId, createCommand);
+
+                // Sayfaları ekle
+                foreach (var page in chapter.Pages.OrderBy(p => p.Order))
+                {
+                    using var ms = new MemoryStream(page.Data);
+                    var savedPath = await ImageService.SavePageImageAsync(ms, page.FileName, newChapterId);
+
+                    var pageCommand = new AddPageCommand
+                    {
+                        PageNumber = page.Order,
+                        ImagePath = savedPath
+                    };
+                    await PageService.AddPageAsync(newChapterId, pageCommand);
+                }
+
+                importedCount++;
+                StateHasChanged();
+            }
+
+            successMessage = $"{importedCount} bölüm başarıyla eklendi!";
+            pendingChapters.Clear();
+            
+            // Kısa bir süre bekle ve yönlendir
+            await Task.Delay(1500);
+            Navigation.NavigateTo($"/admin/series/{SeriesId}/chapters", forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"İçe aktarma sırasında hata oluştu: {ex.Message}";
+        }
+        finally
+        {
+            isImporting = false;
+        }
+    }
+
+    private class PendingChapter
+    {
+        public decimal ChapterNumber { get; set; }
+        public string FolderName { get; set; } = string.Empty;
+        public List<PendingPage> Pages { get; set; } = [];
+    }
+
+    private class PendingPage
+    {
+        public int Order { get; set; }
+        public string FileName { get; set; } = string.Empty;
+        public string PreviewUrl { get; set; } = string.Empty;
+        public byte[] Data { get; set; } = [];
+        public string ContentType { get; set; } = string.Empty;
+    }
+}

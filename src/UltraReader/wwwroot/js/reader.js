@@ -3,11 +3,15 @@
 let dotNetRef = null;
 let scrollHandler = null;
 let keyHandler = null;
+let lastScrollTop = 0;
+let headerVisible = true;
 
 export function initReader(objRef) {
     dotNetRef = objRef;
+    lastScrollTop = 0;
+    headerVisible = true;
     
-    // Scroll handler for progress tracking
+    // Scroll handler for progress tracking and header visibility
     scrollHandler = () => {
         const scrollTop = window.scrollY;
         const docHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -24,6 +28,29 @@ export function initReader(objRef) {
                 currentPage = index + 1;
             }
         });
+        
+        // Header visibility based on scroll direction
+        const scrollDelta = scrollTop - lastScrollTop;
+        const header = document.querySelector('.reader-header');
+        
+        if (header) {
+            // Hide header when scrolling down, show when scrolling up
+            if (scrollDelta > 10 && scrollTop > 100) {
+                // Scrolling down
+                if (headerVisible) {
+                    header.classList.add('hidden');
+                    headerVisible = false;
+                }
+            } else if (scrollDelta < -10 || scrollTop < 50) {
+                // Scrolling up or near top
+                if (!headerVisible) {
+                    header.classList.remove('hidden');
+                    headerVisible = true;
+                }
+            }
+        }
+        
+        lastScrollTop = scrollTop;
         
         if (dotNetRef) {
             dotNetRef.invokeMethodAsync('UpdateScrollProgress', progress, currentPage);
@@ -82,4 +109,6 @@ export function disposeReader() {
         window.removeEventListener('keydown', keyHandler);
     }
     dotNetRef = null;
+    lastScrollTop = 0;
+    headerVisible = true;
 }

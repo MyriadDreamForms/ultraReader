@@ -25,9 +25,6 @@ else if (_data == null)
 }
 else
 {
-    <!-- Progress Bar -->
-    <div class="reader-progress" style="width: @(_scrollProgress)%"></div>
-    
     <!-- Header -->
     <header class="reader-header @(_headerVisible ? "" : "hidden")">
         <div class="reader-header-content">
@@ -116,11 +113,30 @@ else
                     <button class="settings-option @(_pageGap == 24 ? "active" : "")" @onclick="@(() => SetPageGap(24))">Normal</button>
                 </div>
             </div>
+            <div class="settings-group">
+                <label class="settings-label">Kaydırma Yönü</label>
+                <div class="settings-options">
+                    <button class="settings-option @(_scrollDirection == "vertical" ? "active" : "")" @onclick="@(() => SetScrollDirection("vertical"))" title="Yukarı/Aşağı">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="12 5 12 19"></polyline>
+                            <polyline points="5 12 12 19 19 12"></polyline>
+                        </svg>
+                        Dikey
+                    </button>
+                    <button class="settings-option @(_scrollDirection == "horizontal" ? "active" : "")" @onclick="@(() => SetScrollDirection("horizontal"))" title="Sağa/Sola">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="5 12 19 12"></polyline>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                        Yatay
+                    </button>
+                </div>
+            </div>
         </div>
     }
 
     <!-- Content -->
-    <div class="reader-content @(_imageWidth)" style="--page-gap: @(_pageGap)px;" @onclick="ToggleHeaderVisibility">
+    <div class="reader-content @(_imageWidth) scroll-@(_scrollDirection)" style="--page-gap: @(_pageGap)px;" @onclick="ToggleHeaderVisibility">
         <div class="reader-pages">
             @if (_data.Pages.Count == 0)
             {
@@ -204,15 +220,6 @@ else
                 </span>
             }
         </div>
-        
-        <!-- Chapter Progress -->
-        <div class="reader-chapter-progress">
-            <span>Bölüm @_data.ChapterNumber</span>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: @(_scrollProgress)%"></div>
-            </div>
-            <span>@(_scrollProgress)%</span>
-        </div>
     </footer>
 }
 
@@ -228,6 +235,7 @@ else
     private bool _settingsOpen = false;
     private string _imageWidth = "fit"; // fit, full, wide
     private int _pageGap = 0; // 0, 8, 24
+    private string _scrollDirection = "vertical"; // vertical, horizontal
     
     private DotNetObjectReference<Reader>? _objRef;
     private IJSObjectReference? _jsModule;
@@ -312,6 +320,11 @@ else
     private void SetPageGap(int gap)
     {
         _pageGap = gap;
+    }
+    
+    private void SetScrollDirection(string direction)
+    {
+        _scrollDirection = direction;
     }
     
     private async Task ScrollToTop()
