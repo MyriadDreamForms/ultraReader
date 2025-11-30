@@ -1,0 +1,167 @@
+/speckit.specify
+Kişisel, sadece ev içi ağımda (LAN) kullanacağım bir webtoon / manga okuma web uygulaması geliştirmek istiyorum. Uygulama evdeki bilgisayarımda çalışacak ve aynı Wi-Fi’ye bağlı olduğumda telefondan tarayıcı ile erişip okuyacağım. Uygulama sadece benim kullanacağım, public olmayacak.
+
+# Kullanıcılar ve roller
+- Tek kullanıcı: Kütüphanenin sahibi olan ben.
+- Herhangi bir kayıt/üye olma akışı yok.
+- Gerekirse basit bir admin şifresi olabilir ama çok karmaşık yetkilendirme yok.
+
+# Yüksek seviye hedefler
+- İndirdiğim webtoon/manga bölümlerini bilgisayarda klasör yapısında tutacağım.
+- Uygulama bu serileri, bölümleri ve sayfaları veritabanı üzerinden yönetip web arayüzünde gösterecek.
+- Ben web arayüzünden:
+  - Yeni seri ekleyebilmeliyim
+  - Bölüm ekleyebilmeliyim
+  - Sayfaları (görselleri) ekleyip sıralayabilmeliyim
+  - Seri / bölüm / sayfa düzenleme ve silme işlemlerini yapabilmeliyim
+- Okuma deneyimi özellikle **telefonda dikey scroll** ile webtoon okumaya uygun olmalı.
+
+# Temel senaryolar
+
+1. Kütüphaneyi görüntüleme (seri listesi)
+- Tüm serileri bir grid/list şeklinde görebilmeliyim:
+  - Kapak görseli
+  - Seri adı (ve gerekirse orijinal adı)
+  - Durum (Okunuyor / Tamamlandı / Beklemede vb.)
+  - Okunmamış bölüm sayısı (varsa)
+- Filtre / arama:
+  - Seri adına göre arama
+  - Taga göre filtreleme (aksiyon, romantik, isekai vb.)
+  - Duruma göre filtre (Okunuyor, Tamamlandı, vb.)
+- Sıralama:
+  - Son okunanlar
+  - Son güncellenenler
+  - Alfabetik
+
+2. Seri detay sayfası ve bölüm listesi
+- Bir seriye tıkladığımda:
+  - Kapak, seri adı, açıklama (isteğe bağlı)
+  - Tagler ve durum
+  - Bölüm listesi:
+    - Bölüm numarası
+    - Bölüm başlığı (isteğe bağlı)
+    - Okundu / okunmadı bilgisi
+    - Son okuma zamanı (isteğe bağlı)
+- Aksiyonlar:
+  - Belirli bir bölümü okumaya başlama
+  - Bölümü manuel olarak “okundu / okunmadı” işaretleme
+  - Bir sonraki / önceki bölüme geçebilme
+
+3. Okuyucu (webtoon reader) deneyimi
+- Okuyucu sayfası **dikey scroll’a göre optimize** olmalı:
+  - Bölümdeki tüm sayfalar (görseller) alt alta gösterilmeli.
+  - Arka plan koyu / nötr, görseller merkezde ve ekrana sığacak şekilde genişlik ayarlı olmalı (özellikle mobilde).
+- Kontroller:
+  - En altta (ve gerekirse üstte) “Önceki Bölüm” / “Sonraki Bölüm” butonları
+  - “Bölüm listesine dön” butonu/bağlantısı
+- Okuma ilerlemesi:
+  - Bir seride en son hangi bölümü okuduğumu hatırlamalı.
+  - Bölüm açıldığında ya da bölüm sonuna geldiğimde, seri için “son okunan bölüm” güncellenmeli.
+  - İsteğe bağlı: Son sayfa veya scroll pozisyonu tutulabilir (nice-to-have).
+
+4. Seri / bölüm / sayfa yönetimi (CRUD)
+- Seri yönetimi:
+  - Yeni seri ekleme (başlık, slug, kapak görsel yolu, açıklama, tagler, durum)
+  - Seriyi düzenleme
+  - Seriyi silme (onay ile, bağlı bölümlere/sayfalara ne olacağı belli olmalı)
+- Bölüm yönetimi:
+  - Bir seri için yeni bölüm ekleme (bölüm numarası, başlık opsiyonel, tarih opsiyonel)
+  - Bölümü düzenleme
+  - Bölümü silme
+  - Bölümlerin sırasını numaraya göre kontrol edebilme (gerekirse numaraları düzenleme)
+- Sayfa yönetimi:
+  - Bir bölüm için sayfa ekleyebilmeliyim:
+    - Sayfa numarası / sırası
+    - Görsel dosya yolu
+  - Birden fazla sayfayı tek seferde eklemek (örneğin klasördeki tüm .jpg dosyalarını içeri alma) güzel olur.
+  - Sayfa silme
+  - Sayfaların sırasını değiştirme (sayfa numarasını değiştirme veya yukarı/aşağı taşıma)
+
+5. Dosya yapısı ve depolama
+- Görseller veritabanında değil, dosya sistemi üzerinde tutulmalı.
+- Basit bir klasör yapısı tercih edilebilir:
+  - KökKlasor/
+    - SeriSlug/
+      - chapter-001/
+        - 001.jpg
+        - 002.jpg
+      - chapter-002/
+        - 001.jpg
+- Veritabanı sadece göreli dosya yollarını tutmalı.
+- Uygulamada bir “kök webtoon klasörü” ayarı olmalı:
+  - Bu yol appsettings veya basit bir ayar ekranından yönetilebilmeli.
+- Nice-to-have: “Klasörden içeri aktar” özelliği:
+  - Belirli bir klasörü seçtiğimde içindeki görselleri tarayıp, dosya adına göre sıralayıp ilgili bölüme sayfa olarak otomatik ekleme.
+
+6. Favoriler ve tagler
+- Bir seriyi “favori” işaretleyebilmeliyim.
+- Serilere serbest metin tagler ekleyebilmeliyim (aksiyon, romantik, karanlık fantezi vb.).
+- Kütüphane görünümünde:
+  - Sadece favorileri filtreleme
+  - Belirli tag(ler)e göre filtreleme
+
+7. Okuma geçmişi / ana sayfa (nice-to-have)
+- Basit bir ana sayfa / dashboard:
+  - “Kaldığın yerden devam et” alanı:
+    - Son okunan birkaç seriyi gösterir.
+    - “Devam et” butonu ile doğrudan bir sonraki okunmamış bölüme gider.
+  - “Yeni güncellenenler” bölümü:
+    - Yakın zamanda bölümü eklenen/değişen serileri gösterir.
+
+# Kavramsal veri modeli (ORM bağımsız)
+
+- Seri (Series):
+  - Id
+  - Title
+  - OriginalTitle (opsiyonel)
+  - Slug (URL için benzersiz, latin harfli)
+  - Description (opsiyonel)
+  - Status (Reading / Completed / OnHold / Dropped vb.)
+  - IsFavorite (bool)
+  - CoverImagePath (opsiyonel)
+  - Tags (ayrı tablo da olabilir, virgülle ayrılmış string de olabilir)
+  - CreatedAt
+  - UpdatedAt
+
+- Bölüm (Chapter):
+  - Id
+  - SeriesId (FK)
+  - Number (sayı, sıralama için)
+  - Title (opsiyonel)
+  - ReleaseDate (opsiyonel)
+  - CreatedAt
+  - UpdatedAt
+
+- Sayfa (Page):
+  - Id
+  - ChapterId (FK)
+  - PageNumber (sıralama için)
+  - ImagePath (kök klasöre göre göreli yol)
+  - CreatedAt
+  - UpdatedAt
+
+- Okuma İlerlemesi (ReadingProgress):
+  - Id
+  - SeriesId (FK)
+  - LastReadChapterId (FK)
+  - LastReadAt (DateTime)
+  - Opsiyonel: LastPageNumber veya LastScrollOffset (nice-to-have)
+
+# Şimdilik kapsam dışı olanlar
+- Çoklu kullanıcı ve rol sistemi
+- Cloud / internet senkronizasyonu
+- Dış API’lerden (manga/webtoon siteleri) veri çekme
+- Karmaşık istatistikler / öneri algoritmaları
+
+# Kısıtlar
+- Uygulama çoğunlukla telefonla kullanılacak:
+  - Reader sayfası mobile-first olmalı.
+  - Yönetim ekranları masaüstünde de rahat kullanılabilmeli.
+- Zamanla yüzlerce seri ve binlerce bölüm olabilir:
+  - Listelemeler ve sorgular bu büyüklüğe göre düşünülmeli.
+  - Gerekirse sayfalama veya lazy loading kullanılmalı.
+
+# Başarı kriterleri
+- Kök klasörü ayarlayıp serileri/bölümleri tanımladıktan sonra telefondan rahatça okuyabiliyor olmam.
+- Seri, bölüm ve sayfaları tamamen web arayüzünden yönetebiliyor olmam (elle JSON, DB, klasör düzenlemek zorunda kalmamalıyım).
+- Eksik görsel veya yanlış dosya yolu durumlarında, uygulama patlamadan, kullanıcıya anlaşılır uyarı verebilmeli.
