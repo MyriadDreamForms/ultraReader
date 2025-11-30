@@ -1,5 +1,6 @@
 @using UltraReader.Services
 @using UltraReader.Services.DTOs
+@implements IAsyncDisposable
 @inject IChapterService ChapterService
 @inject IPageService PageService
 @inject IImageService ImageService
@@ -28,6 +29,9 @@
             </div>
             <h3>İçe Aktarma Tamamlandı!</h3>
             <p>@importedChapterCount bölüm, @importedPageCount sayfa başarıyla eklendi.</p>
+            <button type="button" class="btn btn-outline btn-sm" style="margin-top: 1rem;" @onclick="Reset">
+                Başka Seri Ekle
+            </button>
         </div>
     }
     else if (importState == ImportState.Error)
@@ -45,9 +49,9 @@
             </div>
             <div class="progress-info">
                 <p class="progress-title">İçe aktarılıyor...</p>
-                <p class="progress-detail">Bölüm @currentChapterNum / @totalChapterCount</p>
+                <p class="progress-detail">Bölüm @currentChapterIndex / @totalChapterCount</p>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: @(totalChapterCount > 0 ? (int)((double)importedChapterCount / totalChapterCount * 100) : 0)%"></div>
+                    <div class="progress-fill" style="width: @progressPercent%"></div>
                 </div>
                 <p class="progress-status">@currentStatus</p>
             </div>
@@ -62,7 +66,7 @@
                     <span class="stat-label">Bölüm</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-value">@pendingChapters.Sum(c => c.Pages.Count)</span>
+                    <span class="stat-value">@pendingChapters.Sum(c => c.FileInfos.Count)</span>
                     <span class="stat-label">Sayfa</span>
                 </div>
             </div>
@@ -70,8 +74,8 @@
                 @foreach (var chapter in pendingChapters.Take(5))
                 {
                     <div class="chapter-mini-preview">
-                        <span class="chapter-badge">@chapter.ChapterNumber</span>
-                        <span class="page-count">@chapter.Pages.Count sayfa</span>
+                        <span class="chapter-badge">@chapter.FolderName</span>
+                        <span class="page-count">@chapter.FileInfos.Count sayfa</span>
                     </div>
                 }
                 @if (pendingChapters.Count > 5)
@@ -81,21 +85,35 @@
                     </div>
                 }
             </div>
-            <button type="button" class="btn btn-primary" @onclick="StartImport" disabled="@(!SeriesId.HasValue)">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                Tümünü İçe Aktar
-            </button>
+            <div class="pending-actions">
+                <button type="button" class="btn btn-outline" @onclick="Reset">İptal</button>
+                <button type="button" class="btn btn-primary" @onclick="StartImport" disabled="@(!SeriesId.HasValue)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Tümünü İçe Aktar
+                </button>
+            </div>
+        </div>
+    }
+    else if (importState == ImportState.Loading)
+    {
+        <div class="import-progress">
+            <div class="progress-spinner">
+                <div class="loading-spinner"></div>
+            </div>
+            <div class="progress-info">
+                <p class="progress-title">Klasör seçiliyor...</p>
+                <p class="progress-status">Lütfen bekleyin</p>
+            </div>
         </div>
     }
     else
     {
-        <div class="import-zone">
-            <InputFile OnChange="OnFilesSelected" multiple accept="image/*" webkitdirectory directory class="input-file-hidden" id="fullSeriesInput" />
-            <label for="fullSeriesInput" class="import-zone-label">
+        <div class="import-zone" @onclick="SelectFolder">
+            <div class="import-zone-label">
                 <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                     <line x1="12" y1="11" x2="12" y2="17"></line>
@@ -103,7 +121,7 @@
                 </svg>
                 <span class="import-zone-title">Seri Klasörünü Seçin</span>
                 <span class="import-zone-hint">Her alt klasör bir bölüm olarak oluşturulur</span>
-            </label>
+            </div>
         </div>
     }
 </div>
@@ -134,6 +152,7 @@
         border: 2px dashed var(--border-color);
         border-radius: 10px;
         transition: all 0.2s ease;
+        cursor: pointer;
     }
 
     .import-zone:hover {
@@ -147,7 +166,6 @@
         align-items: center;
         justify-content: center;
         padding: 2rem;
-        cursor: pointer;
         text-align: center;
         color: var(--text-secondary);
     }
@@ -171,10 +189,6 @@
     .import-zone-hint {
         font-size: 0.8rem;
         opacity: 0.7;
-    }
-
-    .input-file-hidden {
-        display: none;
     }
 
     /* Pending State */
@@ -242,8 +256,10 @@
         font-style: italic;
     }
 
-    .pending-info .btn {
-        align-self: center;
+    .pending-actions {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
     }
 
     /* Progress State */
@@ -347,126 +363,97 @@
     [Parameter]
     public EventCallback<int> OnImportComplete { get; set; }
 
-    private enum ImportState { Idle, Pending, Importing, Completed, Error }
+    private enum ImportState { Idle, Loading, Pending, Importing, Completed, Error }
     private ImportState importState = ImportState.Idle;
 
+    private string pickerId = Guid.NewGuid().ToString("N");
     private List<PendingChapter> pendingChapters = [];
     private int importedChapterCount = 0;
     private int importedPageCount = 0;
     private int totalChapterCount = 0;
-    private decimal currentChapterNum = 0;
+    private int currentChapterIndex = 0;
+    private int progressPercent = 0;
     private string currentStatus = "";
     private string? errorMessage;
 
-    private async Task OnFilesSelected(InputFileChangeEventArgs e)
+    private async Task SelectFolder()
     {
-        pendingChapters.Clear();
-        errorMessage = null;
+        importState = ImportState.Loading;
+        StateHasChanged();
 
         try
         {
-            var files = e.GetMultipleFiles(5000);
+            // JS ile klasör seç ve bilgileri al
+            var folderInfo = await JS.InvokeAsync<FolderInfo>("filePickerInterop.openFolderPicker", pickerId, null);
             
-            // Dosyaları klasör yapısına göre grupla
-            var filesByFolder = new Dictionary<string, List<(string fileName, int pageNum, IBrowserFile file)>>();
-
-            foreach (var file in files)
+            if (folderInfo == null || folderInfo.Files == null || folderInfo.Files.Length == 0)
             {
-                if (!file.ContentType.StartsWith("image/")) continue;
+                importState = ImportState.Idle;
+                StateHasChanged();
+                return;
+            }
 
-                var fullPath = file.Name;
-                var parts = fullPath.Replace('\\', '/').Split('/');
+            pendingChapters.Clear();
+
+            // Dosyaları alt klasörlere göre grupla
+            var filesBySubfolder = new Dictionary<string, List<FileInfoJs>>();
+
+            foreach (var file in folderInfo.Files)
+            {
+                if (string.IsNullOrEmpty(file.Type) || !file.Type.StartsWith("image/"))
+                    continue;
+
+                var pathParts = file.Path.Split('/');
                 
-                string folderName;
-                string fileName;
-
-                if (parts.Length >= 2)
+                string subfolderName;
+                
+                if (pathParts.Length >= 3)
                 {
-                    // Klasör yapısı var: "Chapter 1/001.jpg" veya "1/page001.jpg"
-                    folderName = parts[^2]; // Son önceki klasör
-                    fileName = parts[^1];   // Dosya adı
+                    subfolderName = pathParts[1];
+                }
+                else if (pathParts.Length == 2)
+                {
+                    subfolderName = "1";
                 }
                 else
                 {
-                    // Düz dosya: "1_001.jpg" formatı
-                    var match = System.Text.RegularExpressions.Regex.Match(fullPath, @"^(\d+(?:\.\d+)?)_");
-                    if (match.Success)
-                    {
-                        folderName = match.Groups[1].Value;
-                        fileName = fullPath;
-                    }
-                    else
-                    {
-                        folderName = "1";
-                        fileName = fullPath;
-                    }
+                    continue;
                 }
 
-                // Sayfa numarasını çıkar
-                var pageMatch = System.Text.RegularExpressions.Regex.Match(fileName, @"(\d+)");
-                var pageNum = pageMatch.Success ? int.Parse(pageMatch.Value) : 0;
+                if (!filesBySubfolder.ContainsKey(subfolderName))
+                    filesBySubfolder[subfolderName] = [];
 
-                if (!filesByFolder.ContainsKey(folderName))
-                    filesByFolder[folderName] = [];
-
-                filesByFolder[folderName].Add((fileName, pageNum, file));
+                filesBySubfolder[subfolderName].Add(file);
             }
 
-            // Her klasör için bir bölüm oluştur
-            foreach (var folder in filesByFolder.OrderBy(f => ExtractNumber(f.Key)))
+            // Her alt klasör için bir bölüm oluştur
+            foreach (var kvp in filesBySubfolder.OrderBy(f => ExtractNumber(f.Key)))
             {
-                var chapterNumber = ExtractNumber(folder.Key);
+                var chapterNumber = ExtractNumber(kvp.Key);
+
+                var sortedFiles = kvp.Value
+                    .OrderBy(f => ExtractNumber(f.Name))
+                    .ThenBy(f => f.Name, Comparer<string>.Create(NaturalCompare))
+                    .ToList();
 
                 var pendingChapter = new PendingChapter
                 {
                     ChapterNumber = chapterNumber,
-                    FolderName = folder.Key
+                    FolderName = kvp.Key,
+                    FileInfos = sortedFiles
                 };
 
-                // Dosyaları sırala
-                var sortedFiles = folder.Value
-                    .OrderBy(f => f.pageNum)
-                    .ThenBy(f => f.fileName, Comparer<string>.Create(NaturalCompare))
-                    .ToList();
-
-                int pageOrder = 0;
-                foreach (var (fileName, _, file) in sortedFiles)
-                {
-                    try
-                    {
-                        using var stream = file.OpenReadStream(maxAllowedSize: 25 * 1024 * 1024);
-                        using var ms = new MemoryStream();
-                        await stream.CopyToAsync(ms);
-                        var data = ms.ToArray();
-
-                        pageOrder++;
-                        pendingChapter.Pages.Add(new PendingPage
-                        {
-                            Order = pageOrder,
-                            FileName = fileName,
-                            Data = data,
-                            ContentType = file.ContentType
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error loading {fileName}: {ex.Message}");
-                    }
-                }
-
-                if (pendingChapter.Pages.Count > 0)
-                    pendingChapters.Add(pendingChapter);
+                pendingChapters.Add(pendingChapter);
             }
 
-            if (pendingChapters.Count > 0)
-                importState = ImportState.Pending;
-
+            importState = pendingChapters.Count > 0 ? ImportState.Pending : ImportState.Idle;
             StateHasChanged();
         }
         catch (Exception ex)
         {
-            errorMessage = $"Dosyalar yüklenirken hata: {ex.Message}";
+            errorMessage = $"Klasör okunurken hata: {ex.Message}";
             importState = ImportState.Error;
+            StateHasChanged();
         }
     }
 
@@ -478,20 +465,21 @@
         importedChapterCount = 0;
         importedPageCount = 0;
         totalChapterCount = pendingChapters.Count;
+        currentChapterIndex = 0;
+        progressPercent = 0;
         currentStatus = "Başlatılıyor...";
         StateHasChanged();
 
         try
         {
-            // Mevcut bölüm numaralarını al
             var existingChapters = await ChapterService.GetChaptersAsync(SeriesId.Value);
             var existingNums = existingChapters.Select(c => c.Number).ToHashSet();
 
             foreach (var chapter in pendingChapters.OrderBy(c => c.ChapterNumber))
             {
-                currentChapterNum = chapter.ChapterNumber;
+                currentChapterIndex++;
+                progressPercent = (int)((double)currentChapterIndex / totalChapterCount * 100);
                 
-                // Çakışma varsa yeni numara bul
                 var chapterNumber = chapter.ChapterNumber;
                 while (existingNums.Contains(chapterNumber))
                 {
@@ -501,8 +489,8 @@
 
                 currentStatus = $"Bölüm {chapterNumber} oluşturuluyor...";
                 StateHasChanged();
+                await Task.Delay(1); // UI güncellemesi için
 
-                // Bölümü oluştur
                 var createCommand = new CreateChapterCommand
                 {
                     Number = chapterNumber,
@@ -510,26 +498,43 @@
                 };
                 var newChapterId = await ChapterService.CreateChapterAsync(SeriesId.Value, createCommand);
 
-                // Sayfaları ekle
-                foreach (var page in chapter.Pages.OrderBy(p => p.Order))
+                int pageOrder = 0;
+                foreach (var fileInfo in chapter.FileInfos)
                 {
-                    currentStatus = $"Bölüm {chapterNumber}: Sayfa {page.Order}/{chapter.Pages.Count}";
+                    pageOrder++;
+                    currentStatus = $"Bölüm {chapterNumber}: Sayfa {pageOrder}/{chapter.FileInfos.Count}";
                     StateHasChanged();
 
-                    using var ms = new MemoryStream(page.Data);
-                    var savedPath = await ImageService.SavePageImageAsync(ms, page.FileName, newChapterId);
-
-                    var pageCommand = new AddPageCommand
+                    try
                     {
-                        PageNumber = page.Order,
-                        ImagePath = savedPath
-                    };
-                    await PageService.AddPageAsync(newChapterId, pageCommand);
-                    importedPageCount++;
+                        var base64Data = await JS.InvokeAsync<string>("filePickerInterop.readFileAsBase64", pickerId, fileInfo.Index);
+                        
+                        if (string.IsNullOrEmpty(base64Data))
+                            continue;
+
+                        var base64Content = base64Data.Contains(',') 
+                            ? base64Data.Substring(base64Data.IndexOf(',') + 1) 
+                            : base64Data;
+                        var imageData = Convert.FromBase64String(base64Content);
+
+                        using var ms = new MemoryStream(imageData);
+                        var savedPath = await ImageService.SavePageImageAsync(ms, fileInfo.Name, newChapterId);
+
+                        var pageCommand = new AddPageCommand
+                        {
+                            PageNumber = pageOrder,
+                            ImagePath = savedPath
+                        };
+                        await PageService.AddPageAsync(newChapterId, pageCommand);
+                        importedPageCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error importing page {fileInfo.Name}: {ex.Message}");
+                    }
                 }
 
                 importedChapterCount++;
-                StateHasChanged();
             }
 
             importState = ImportState.Completed;
@@ -543,15 +548,20 @@
             errorMessage = $"İçe aktarma hatası: {ex.Message}";
             importState = ImportState.Error;
         }
+        
+        StateHasChanged();
     }
 
-    private void Reset()
+    private async Task Reset()
     {
+        await JS.InvokeVoidAsync("filePickerInterop.disposeFolderPicker", pickerId);
+        
         importState = ImportState.Idle;
         pendingChapters.Clear();
         errorMessage = null;
         importedChapterCount = 0;
         importedPageCount = 0;
+        pickerId = Guid.NewGuid().ToString("N");
     }
 
     private static decimal ExtractNumber(string input)
@@ -588,18 +598,34 @@
         return a.Length.CompareTo(b.Length);
     }
 
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("filePickerInterop.disposeFolderPicker", pickerId);
+        }
+        catch { }
+    }
+
+    private class FolderInfo
+    {
+        public string FolderName { get; set; } = string.Empty;
+        public FileInfoJs[] Files { get; set; } = [];
+    }
+
+    private class FileInfoJs
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Path { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public long Size { get; set; }
+        public int Index { get; set; }
+    }
+
     private class PendingChapter
     {
         public decimal ChapterNumber { get; set; }
         public string FolderName { get; set; } = string.Empty;
-        public List<PendingPage> Pages { get; set; } = [];
-    }
-
-    private class PendingPage
-    {
-        public int Order { get; set; }
-        public string FileName { get; set; } = string.Empty;
-        public byte[] Data { get; set; } = [];
-        public string ContentType { get; set; } = string.Empty;
+        public List<FileInfoJs> FileInfos { get; set; } = [];
     }
 }
