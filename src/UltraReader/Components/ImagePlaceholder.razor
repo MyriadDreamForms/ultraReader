@@ -1,0 +1,35 @@
+@* ImagePlaceholder.razor - Displays image with fallback to placeholder *@
+
+<img src="@CurrentSrc" 
+     alt="@AltText" 
+     class="@CssClass"
+     loading="lazy"
+     @onerror="HandleError" />
+
+@code {
+    [Parameter] public string? ImageUrl { get; set; }
+    [Parameter] public string AltText { get; set; } = "Image";
+    [Parameter] public string PlaceholderUrl { get; set; } = "/images/placeholder.png";
+    [Parameter] public string? CssClass { get; set; }
+
+    private string CurrentSrc => _hasError ? PlaceholderUrl : (ImageUrl ?? PlaceholderUrl);
+    private bool _hasError;
+
+    private void HandleError()
+    {
+        if (!_hasError)
+        {
+            _hasError = true;
+            StateHasChanged();
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        // Reset error state when URL changes
+        if (!string.IsNullOrEmpty(ImageUrl))
+        {
+            _hasError = false;
+        }
+    }
+}

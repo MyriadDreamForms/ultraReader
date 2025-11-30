@@ -1,0 +1,62 @@
+@using Microsoft.AspNetCore.Components.Web
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop" @onclick="OnBackdropClick">
+        <div class="modal" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3 class="modal-title">@Title</h3>
+            </div>
+            <div class="modal-body">
+                <p>@Message</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" @onclick="HandleCancel">@CancelText</button>
+                <button class="btn @ConfirmButtonClass" @onclick="HandleConfirm">@ConfirmText</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public string Title { get; set; } = "Onay";
+
+    [Parameter]
+    public string Message { get; set; } = "Bu işlemi gerçekleştirmek istediğinizden emin misiniz?";
+
+    [Parameter]
+    public string ConfirmText { get; set; } = "Onayla";
+
+    [Parameter]
+    public string CancelText { get; set; } = "İptal";
+
+    [Parameter]
+    public bool IsDanger { get; set; } = false;
+
+    [Parameter]
+    public EventCallback OnConfirm { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    private string ConfirmButtonClass => IsDanger ? "btn-danger" : "btn-primary";
+
+    private async Task HandleConfirm()
+    {
+        await OnConfirm.InvokeAsync();
+    }
+
+    private async Task HandleCancel()
+    {
+        await OnCancel.InvokeAsync();
+    }
+
+    private async Task OnBackdropClick()
+    {
+        await OnCancel.InvokeAsync();
+    }
+}

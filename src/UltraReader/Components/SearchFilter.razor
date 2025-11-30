@@ -1,0 +1,144 @@
+@using UltraReader.Entities
+@using UltraReader.Services
+
+<div class="search-filter-bar">
+    <input type="text" 
+           class="form-input search-input" 
+           placeholder="Seri ara..."
+           value="@SearchTerm"
+           @oninput="OnSearchInput" />
+    
+    <select class="form-select filter-select" 
+            value="@SelectedStatus"
+            @onchange="OnStatusChange">
+        <option value="">Tüm Durumlar</option>
+        <option value="@((int)SeriesStatus.NotStarted)">Başlanmadı</option>
+        <option value="@((int)SeriesStatus.Reading)">Okunuyor</option>
+        <option value="@((int)SeriesStatus.Completed)">Tamamlandı</option>
+        <option value="@((int)SeriesStatus.OnHold)">Beklemede</option>
+        <option value="@((int)SeriesStatus.Dropped)">Bırakıldı</option>
+    </select>
+
+    @if (AvailableTags.Any())
+    {
+        <select class="form-select filter-select"
+                value="@SelectedTag"
+                @onchange="OnTagChange">
+            <option value="">Tüm Etiketler</option>
+            @foreach (var tag in AvailableTags)
+            {
+                <option value="@tag">@tag</option>
+            }
+        </select>
+    }
+
+    <select class="form-select filter-select"
+            value="@((int)SortBy)"
+            @onchange="OnSortChange">
+        <option value="@((int)SortOption.LastRead)">Son Okunan</option>
+        <option value="@((int)SortOption.LastUpdated)">Son Güncellenen</option>
+        <option value="@((int)SortOption.Alphabetical)">A-Z</option>
+        <option value="@((int)SortOption.AlphabeticalDesc)">Z-A</option>
+    </select>
+
+    <label class="favorites-filter">
+        <input type="checkbox" 
+               checked="@(FavoritesOnly == true)"
+               @onchange="OnFavoritesChange" />
+        <span>⭐ Favoriler</span>
+    </label>
+</div>
+
+<style>
+    .favorites-filter {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        white-space: nowrap;
+        font-size: 0.875rem;
+    }
+    
+    .favorites-filter input {
+        width: 1rem;
+        height: 1rem;
+    }
+</style>
+
+@code {
+    [Parameter] public string? SearchTerm { get; set; }
+    [Parameter] public string? SelectedTag { get; set; }
+    [Parameter] public SeriesStatus? SelectedStatus { get; set; }
+    [Parameter] public bool? FavoritesOnly { get; set; }
+    [Parameter] public SortOption SortBy { get; set; } = SortOption.LastRead;
+    [Parameter] public List<string> AvailableTags { get; set; } = [];
+    [Parameter] public EventCallback<FilterChangedEventArgs> OnFilterChanged { get; set; }
+
+    private System.Timers.Timer? _debounceTimer;
+
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        SearchTerm = e.Value?.ToString();
+        await DebounceFilterChange();
+    }
+
+    private async Task OnStatusChange(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString();
+        SelectedStatus = string.IsNullOrEmpty(value) ? null : (SeriesStatus)int.Parse(value);
+        await NotifyFilterChanged();
+    }
+
+    private async Task OnTagChange(ChangeEventArgs e)
+    {
+        SelectedTag = e.Value?.ToString();
+        if (string.IsNullOrEmpty(SelectedTag)) SelectedTag = null;
+        await NotifyFilterChanged();
+    }
+
+    private async Task OnSortChange(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString();
+        SortBy = string.IsNullOrEmpty(value) ? SortOption.LastRead : (SortOption)int.Parse(value);
+        await NotifyFilterChanged();
+    }
+
+    private async Task OnFavoritesChange(ChangeEventArgs e)
+    {
+        var isChecked = (bool?)e.Value;
+        FavoritesOnly = isChecked == true ? true : null;
+        await NotifyFilterChanged();
+    }
+
+    private async Task DebounceFilterChange()
+    {
+        _debounceTimer?.Stop();
+        _debounceTimer?.Dispose();
+        
+        _debounceTimer = new System.Timers.Timer(300);
+        _debounceTimer.Elapsed += async (sender, args) =>
+        {
+            _debounceTimer?.Stop();
+            await InvokeAsync(NotifyFilterChanged);
+        };
+        _debounceTimer.AutoReset = false;
+        _debounceTimer.Start();
+    }
+
+    private async Task NotifyFilterChanged()
+    {
+        await OnFilterChanged.InvokeAsync(new FilterChangedEventArgs
+        {
+            SearchTerm = SearchTerm,
+            Tag = SelectedTag,
+            Status = SelectedStatus,
+            FavoritesOnly = FavoritesOnly,
+            SortBy = SortBy
+        });
+    }
+
+    public void Dispose()
+    {
+        _debounceTimer?.Dispose();
+    }
+}

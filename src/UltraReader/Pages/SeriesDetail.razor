@@ -1,0 +1,217 @@
+@page "/series/{Slug}"
+@using UltraReader.Services
+@using UltraReader.Services.DTOs
+@using UltraReader.Entities
+@inject ISeriesService SeriesService
+@inject IChapterService ChapterService
+@inject NavigationManager Navigation
+
+<PageTitle>@(series?.Title ?? "Seri Detayı") - UltraReader</PageTitle>
+
+@if (isLoading)
+{
+    <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <p>Yükleniyor...</p>
+    </div>
+}
+else if (series == null)
+{
+    <div class="error-container">
+        <h2>Seri bulunamadı</h2>
+        <p>Aradığınız seri mevcut değil veya silinmiş olabilir.</p>
+        <a href="/library" class="btn btn-primary">Kütüphaneye Dön</a>
+    </div>
+}
+else
+{
+    <div class="series-detail">
+        <div class="series-header">
+            <div class="series-cover">
+                <ImagePlaceholder Src="@series.CoverImageUrl" Alt="@series.Title" />
+            </div>
+            <div class="series-info">
+                <h1 class="series-title">@series.Title</h1>
+                @if (!string.IsNullOrEmpty(series.OriginalTitle))
+                {
+                    <p class="series-original-title">@series.OriginalTitle</p>
+                }
+                
+                <div class="series-meta">
+                    <span class="status-badge status-@series.Status.ToString().ToLower()">
+                        @GetStatusText(series.Status)
+                    </span>
+                    <span class="chapter-count">@series.Chapters.Count bölüm</span>
+                    @if (series.LastReadChapterNumber.HasValue)
+                    {
+                        <span class="last-read-info">
+                            Son okunan: Bölüm @series.LastReadChapterNumber.Value
+                        </span>
+                    }
+                </div>
+
+                @if (series.Tags.Count > 0)
+                {
+                    <div class="series-tags">
+                        @foreach (var tag in series.Tags)
+                        {
+                            <span class="tag">@tag</span>
+                        }
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(series.Description))
+                {
+                    <div class="series-description">
+                        <p>@series.Description</p>
+                    </div>
+                }
+
+                <div class="series-actions">
+                    @if (series.LastReadChapterId.HasValue && series.LastReadChapterNumber.HasValue)
+                    {
+                        <a href="/reader/@series.Slug/@series.LastReadChapterNumber.Value" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                            Okumaya Devam Et
+                        </a>
+                    }
+                    else if (series.Chapters.Count > 0)
+                    {
+                        var firstChapter = series.Chapters.FirstOrDefault();
+                        @if (firstChapter != null)
+                        {
+                            <a href="/reader/@series.Slug/@firstChapter.Number" class="btn btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                                </svg>
+                                Okumaya Başla
+                            </a>
+                        }
+                    }
+                    
+                    <button class="btn btn-icon @(series.IsFavorite ? "favorite-active" : "")" 
+                            @onclick="ToggleFavorite" 
+                            title="@(series.IsFavorite ? "Favorilerden Çıkar" : "Favorilere Ekle")">
+                        @if (series.IsFavorite)
+                        {
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                        }
+                        else
+                        {
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="chapters-section">
+            <div class="chapters-header">
+                <h2>Bölümler</h2>
+                <div class="chapters-filter">
+                    <button class="btn btn-sm @(sortAscending ? "btn-active" : "")" @onclick="ToggleSortOrder">
+                        @if (sortAscending)
+                        {
+                            <span>1 → @series.Chapters.Count</span>
+                        }
+                        else
+                        {
+                            <span>@series.Chapters.Count → 1</span>
+                        }
+                    </button>
+                </div>
+            </div>
+
+            @if (series.Chapters.Count == 0)
+            {
+                <div class="empty-state">
+                    <p>Henüz bölüm eklenmemiş.</p>
+                </div>
+            }
+            else
+            {
+                <div class="chapters-list">
+                    @foreach (var chapter in GetSortedChapters())
+                    {
+                        <ChapterListItem Chapter="chapter" SeriesSlug="@series.Slug" OnToggleReadStatus="HandleToggleReadStatus" />
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string Slug { get; set; } = string.Empty;
+
+    private SeriesDetailDto? series;
+    private bool isLoading = true;
+    private bool sortAscending = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrEmpty(Slug))
+        {
+            await LoadSeriesAsync();
+        }
+    }
+
+    private async Task LoadSeriesAsync()
+    {
+        isLoading = true;
+        try
+        {
+            series = await SeriesService.GetSeriesDetailAsync(Slug);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private IEnumerable<ChapterListItemDto> GetSortedChapters()
+    {
+        if (series == null) return [];
+        
+        return sortAscending 
+            ? series.Chapters.OrderBy(c => c.Number)
+            : series.Chapters.OrderByDescending(c => c.Number);
+    }
+
+    private void ToggleSortOrder()
+    {
+        sortAscending = !sortAscending;
+    }
+
+    private async Task ToggleFavorite()
+    {
+        if (series == null) return;
+        
+        await SeriesService.ToggleFavoriteAsync(series.Id);
+        await LoadSeriesAsync();
+    }
+
+    private async Task HandleToggleReadStatus(int chapterId)
+    {
+        await ChapterService.ToggleReadStatusAsync(chapterId);
+        await LoadSeriesAsync();
+    }
+
+    private string GetStatusText(SeriesStatus status) => status switch
+    {
+        SeriesStatus.NotStarted => "Başlanmadı",
+        SeriesStatus.Reading => "Okunuyor",
+        SeriesStatus.Completed => "Tamamlandı",
+        SeriesStatus.OnHold => "Beklemede",
+        SeriesStatus.Dropped => "Bırakıldı",
+        _ => status.ToString()
+    };
+}

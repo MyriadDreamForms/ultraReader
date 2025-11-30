@@ -1,0 +1,77 @@
+<nav class="pagination">
+    <button class="pagination-btn" 
+            disabled="@(!HasPreviousPage)"
+            @onclick="() => GoToPage(1)">
+        ««
+    </button>
+    <button class="pagination-btn" 
+            disabled="@(!HasPreviousPage)"
+            @onclick="() => GoToPage(CurrentPage - 1)">
+        «
+    </button>
+
+    @foreach (var pageNum in GetVisiblePages())
+    {
+        <button class="pagination-btn @(pageNum == CurrentPage ? "active" : "")"
+                @onclick="() => GoToPage(pageNum)">
+            @pageNum
+        </button>
+    }
+
+    <button class="pagination-btn" 
+            disabled="@(!HasNextPage)"
+            @onclick="() => GoToPage(CurrentPage + 1)">
+        »
+    </button>
+    <button class="pagination-btn" 
+            disabled="@(!HasNextPage)"
+            @onclick="() => GoToPage(TotalPages)">
+        »»
+    </button>
+</nav>
+
+@if (TotalCount > 0)
+{
+    <div class="text-center text-muted mt-1" style="font-size: 0.875rem;">
+        Toplam @TotalCount seri
+    </div>
+}
+
+@code {
+    [Parameter] public int CurrentPage { get; set; } = 1;
+    [Parameter] public int TotalPages { get; set; }
+    [Parameter] public int TotalCount { get; set; }
+    [Parameter] public int PageSize { get; set; } = 20;
+    [Parameter] public EventCallback<int> OnPageChanged { get; set; }
+
+    private bool HasPreviousPage => CurrentPage > 1;
+    private bool HasNextPage => CurrentPage < TotalPages;
+
+    private async Task GoToPage(int page)
+    {
+        if (page >= 1 && page <= TotalPages && page != CurrentPage)
+        {
+            await OnPageChanged.InvokeAsync(page);
+        }
+    }
+
+    private IEnumerable<int> GetVisiblePages()
+    {
+        const int maxVisible = 5;
+        
+        if (TotalPages <= maxVisible)
+        {
+            return Enumerable.Range(1, TotalPages);
+        }
+
+        var start = Math.Max(1, CurrentPage - maxVisible / 2);
+        var end = Math.Min(TotalPages, start + maxVisible - 1);
+        
+        if (end - start + 1 < maxVisible)
+        {
+            start = Math.Max(1, end - maxVisible + 1);
+        }
+
+        return Enumerable.Range(start, end - start + 1);
+    }
+}

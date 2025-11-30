@@ -1,0 +1,136 @@
+@page "/"
+@using UltraReader.Services
+@using UltraReader.Services.DTOs
+@inject IDashboardService DashboardService
+@inject NavigationManager Navigation
+
+<PageTitle>UltraReader - Ana Sayfa</PageTitle>
+
+<div class="dashboard">
+    <div class="dashboard-hero">
+        <h1>UltraReader</h1>
+        <p>Webtoon ve manga koleksiyonunuz için kişisel okuyucunuz</p>
+    </div>
+
+    <section class="dashboard-section">
+        <div class="dashboard-section-header">
+            <h2>Okumaya Devam Et</h2>
+            @if (continueReading.Count > 0)
+            {
+                <a href="/library" class="btn btn-ghost">Tümünü Gör →</a>
+            }
+        </div>
+        
+        @if (isLoading)
+        {
+            <div class="loading">
+                <div class="loading-spinner"></div>
+            </div>
+        }
+        else if (continueReading.Count == 0)
+        {
+            <div class="empty-state">
+                <div class="empty-state-icon">📚</div>
+                <h3 class="empty-state-title">Henüz bir şey okumadınız</h3>
+                <p>Kütüphaneden bir seri seçerek okumaya başlayın.</p>
+                <a href="/library" class="btn btn-primary" style="margin-top: 1rem;">Kütüphaneye Git</a>
+            </div>
+        }
+        else
+        {
+            <div class="continue-reading-grid">
+                @foreach (var item in continueReading)
+                {
+                    <a href="/reader/@item.SeriesSlug/@item.NextChapterNumber" class="continue-card">
+                        <div class="continue-cover">
+                            <img src="@item.CoverImageUrl" alt="@item.SeriesTitle" loading="lazy" />
+                        </div>
+                        <div class="continue-info">
+                            <h3>@item.SeriesTitle</h3>
+                            <span class="continue-chapter">Bölüm @item.NextChapterNumber</span>
+                            <span class="continue-time">@FormatTimeAgo(item.LastReadAt)</span>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="dashboard-section">
+        <div class="dashboard-section-header">
+            <h2>Son Güncellenenler</h2>
+            @if (recentlyUpdated.Count > 0)
+            {
+                <a href="/library" class="btn btn-ghost">Tümünü Gör →</a>
+            }
+        </div>
+        
+        @if (isLoading)
+        {
+            <div class="loading">
+                <div class="loading-spinner"></div>
+            </div>
+        }
+        else if (recentlyUpdated.Count == 0)
+        {
+            <div class="empty-state">
+                <div class="empty-state-icon">✨</div>
+                <h3 class="empty-state-title">Koleksiyonunuz boş</h3>
+                <p>Yönetim panelinden yeni seriler ekleyebilirsiniz.</p>
+                <a href="/admin/series" class="btn btn-primary" style="margin-top: 1rem;">Seri Ekle</a>
+            </div>
+        }
+        else
+        {
+            <div class="series-grid">
+                @foreach (var item in recentlyUpdated)
+                {
+                    <a href="/series/@item.SeriesSlug" class="series-card card">
+                        <img src="@item.CoverImageUrl" alt="@item.SeriesTitle" class="series-card-cover" loading="lazy" />
+                        <div class="series-card-info">
+                            <h3 class="series-card-title">@item.SeriesTitle</h3>
+                            <p class="series-card-status">Bölüm @item.LatestChapterNumber</p>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+    </section>
+</div>
+
+@code {
+    private List<ContinueReadingDto> continueReading = [];
+    private List<RecentlyUpdatedDto> recentlyUpdated = [];
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            continueReading = await DashboardService.GetContinueReadingAsync(6);
+            recentlyUpdated = await DashboardService.GetRecentlyUpdatedAsync(12);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string FormatTimeAgo(DateTime date)
+    {
+        var diff = DateTime.UtcNow - date;
+        
+        if (diff.TotalMinutes < 1)
+            return "Az önce";
+        if (diff.TotalMinutes < 60)
+            return $"{(int)diff.TotalMinutes} dk önce";
+        if (diff.TotalHours < 24)
+            return $"{(int)diff.TotalHours} saat önce";
+        if (diff.TotalDays < 7)
+            return $"{(int)diff.TotalDays} gün önce";
+        if (diff.TotalDays < 30)
+            return $"{(int)(diff.TotalDays / 7)} hafta önce";
+        
+        return date.ToString("dd MMM yyyy");
+    }
+}

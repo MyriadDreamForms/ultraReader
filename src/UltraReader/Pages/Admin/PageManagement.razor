@@ -1,0 +1,247 @@
+@page "/admin/series/{SeriesId:int}/chapters/{ChapterId:int}/pages"
+@using UltraReader.Services
+@using UltraReader.Services.DTOs
+@inject IPageService PageService
+@inject IChapterService ChapterService
+@inject ISeriesService SeriesService
+@inject NavigationManager Navigation
+
+<PageTitle>Sayfa Yönetimi - UltraReader</PageTitle>
+
+<div class="admin-header">
+    <div>
+        <h1>Sayfa Yönetimi</h1>
+        @if (chapterInfo != null)
+        {
+            <p class="text-muted">@seriesTitle - Bölüm @chapterInfo.Number</p>
+        }
+    </div>
+    <div class="header-actions">
+        <a href="/admin/series/@SeriesId/chapters" class="btn btn-outline">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Geri
+        </a>
+        <button class="btn btn-primary" @onclick="ShowImportDialog">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Klasörden İçe Aktar
+        </button>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (isLoading)
+{
+    <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <p>Yükleniyor...</p>
+    </div>
+}
+else if (pages == null || !pages.Any())
+{
+    <div class="empty-state">
+        <div class="empty-state-icon">🖼️</div>
+        <p class="empty-state-title">Henüz sayfa eklenmemiş</p>
+        <p>Bir klasörden görsel dosyalarını içe aktararak başlayın.</p>
+        <button class="btn btn-primary mt-2" @onclick="ShowImportDialog">Klasörden İçe Aktar</button>
+    </div>
+}
+else
+{
+    <div class="pages-grid">
+        @foreach (var pageItem in pages)
+        {
+            <div class="page-card">
+                <div class="page-thumbnail">
+                    <img src="@pageItem.ImageUrl" alt="Sayfa @pageItem.PageNumber" loading="lazy" />
+                </div>
+                <div class="page-info">
+                    <span class="page-number">Sayfa @pageItem.PageNumber</span>
+                    <button class="btn btn-sm btn-danger" @onclick="() => ShowDeleteConfirm(pageItem)" title="Sil">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@* Delete Confirmation Dialog *@
+<ConfirmDialog IsVisible="@showDeleteConfirm"
+               Title="Sayfayı Sil"
+               Message="@($"Sayfa {pageToDelete?.PageNumber} silinecek. Bu işlem geri alınamaz.")"
+               ConfirmText="Sil"
+               CancelText="İptal"
+               IsDanger="true"
+               OnConfirm="HandleDeleteConfirm"
+               OnCancel="HideDeleteConfirm" />
+
+@* Import Dialog *@
+@if (showImportDialog)
+{
+    <div class="modal-backdrop" @onclick="HideImportDialog">
+        <div class="modal" style="max-width: 500px;" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3 class="modal-title">Klasörden İçe Aktar</h3>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="folderPath">Klasör Yolu</label>
+                    <input id="folderPath" type="text" class="form-input" @bind="importFolderPath" 
+                           placeholder="örn: webtoons/seri-adi/bolum-1" />
+                    <span class="form-hint">İçerik kökü içindeki klasör yolu (mutlak veya göreceli)</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" @onclick="HideImportDialog">İptal</button>
+                <button class="btn btn-primary" @onclick="HandleImport" disabled="@isImporting">
+                    @if (isImporting)
+                    {
+                        <span class="loading-spinner" style="width: 16px; height: 16px; margin-right: 0.5rem;"></span>
+                    }
+                    İçe Aktar
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int SeriesId { get; set; }
+
+    [Parameter]
+    public int ChapterId { get; set; }
+
+    private List<PageDto>? pages;
+    private ChapterEditDto? chapterInfo;
+    private string? seriesTitle;
+    private bool isLoading = true;
+
+    private bool showDeleteConfirm = false;
+    private PageDto? pageToDelete;
+
+    private bool showImportDialog = false;
+    private string importFolderPath = string.Empty;
+    private bool isImporting = false;
+
+    private string? successMessage;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        isLoading = true;
+        try
+        {
+            var series = await SeriesService.GetSeriesDetailByIdAsync(SeriesId);
+            seriesTitle = series?.Title;
+
+            chapterInfo = await ChapterService.GetChapterForEditAsync(ChapterId);
+            pages = await PageService.GetPagesAsync(ChapterId);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ShowDeleteConfirm(PageDto page)
+    {
+        pageToDelete = page;
+        showDeleteConfirm = true;
+    }
+
+    private void HideDeleteConfirm()
+    {
+        showDeleteConfirm = false;
+        pageToDelete = null;
+    }
+
+    private async Task HandleDeleteConfirm()
+    {
+        if (pageToDelete != null)
+        {
+            await PageService.DeletePageAsync(pageToDelete.Id);
+            HideDeleteConfirm();
+            successMessage = $"Sayfa {pageToDelete.PageNumber} silindi.";
+            await LoadDataAsync();
+        }
+    }
+
+    private void ShowImportDialog()
+    {
+        showImportDialog = true;
+        importFolderPath = string.Empty;
+        errorMessage = null;
+        successMessage = null;
+    }
+
+    private void HideImportDialog()
+    {
+        showImportDialog = false;
+    }
+
+    private async Task HandleImport()
+    {
+        if (string.IsNullOrWhiteSpace(importFolderPath))
+        {
+            errorMessage = "Lütfen bir klasör yolu girin.";
+            return;
+        }
+
+        isImporting = true;
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+            var result = await PageService.ImportFromFolderAsync(ChapterId, importFolderPath);
+
+            if (result.Errors.Any())
+            {
+                errorMessage = string.Join(" ", result.Errors);
+            }
+            else if (result.ImportedCount > 0 || result.SkippedCount > 0)
+            {
+                successMessage = $"{result.ImportedCount} sayfa içe aktarıldı, {result.SkippedCount} sayfa atlandı.";
+                HideImportDialog();
+                await LoadDataAsync();
+            }
+            else
+            {
+                errorMessage = "İçe aktarılacak yeni sayfa bulunamadı.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Hata: {ex.Message}";
+        }
+        finally
+        {
+            isImporting = false;
+        }
+    }
+}

@@ -1,0 +1,188 @@
+@page "/admin/series"
+@using UltraReader.Services
+@using UltraReader.Services.DTOs
+@using UltraReader.Entities
+@inject ISeriesService SeriesService
+@inject NavigationManager Navigation
+
+<PageTitle>Seri Yönetimi - UltraReader</PageTitle>
+
+<div class="admin-header">
+    <h1>Seri Yönetimi</h1>
+    <a href="/admin/series/new" class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Yeni Seri
+    </a>
+</div>
+
+@if (isLoading)
+{
+    <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <p>Yükleniyor...</p>
+    </div>
+}
+else if (seriesList == null || !seriesList.Items.Any())
+{
+    <div class="empty-state">
+        <div class="empty-state-icon">📚</div>
+        <p class="empty-state-title">Henüz seri eklenmemiş</p>
+        <p>Yeni bir seri ekleyerek başlayın.</p>
+        <a href="/admin/series/new" class="btn btn-primary mt-2">Yeni Seri Ekle</a>
+    </div>
+}
+else
+{
+    <div class="admin-table-container">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Kapak</th>
+                    <th>Başlık</th>
+                    <th>Durum</th>
+                    <th>Bölüm</th>
+                    <th>Favoriler</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var series in seriesList.Items)
+                {
+                    <tr>
+                        <td class="cover-cell">
+                            <img src="@series.CoverImageUrl" alt="@series.Title" class="series-thumbnail" />
+                        </td>
+                        <td>
+                            <div class="series-title-cell">
+                                <a href="/series/@series.Slug">@series.Title</a>
+                                <span class="series-slug">@series.Slug</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="status-badge status-@series.Status.ToString().ToLower()">
+                                @GetStatusText(series.Status)
+                            </span>
+                        </td>
+                        <td>@series.TotalChapters</td>
+                        <td>
+                            @if (series.IsFavorite)
+                            {
+                                <span class="favorite-star">★</span>
+                            }
+                        </td>
+                        <td class="actions-cell">
+                            <a href="/admin/series/@series.Id/edit" class="btn btn-sm btn-outline" title="Düzenle">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </a>
+                            <a href="/admin/series/@series.Id/chapters" class="btn btn-sm btn-outline" title="Bölümler">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="8" y1="6" x2="21" y2="6"></line>
+                                    <line x1="8" y1="12" x2="21" y2="12"></line>
+                                    <line x1="8" y1="18" x2="21" y2="18"></line>
+                                    <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                    <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                    <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                                </svg>
+                            </a>
+                            <button class="btn btn-sm btn-danger" @onclick="() => ShowDeleteConfirm(series)" title="Sil">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (seriesList.TotalPages > 1)
+    {
+        <Pagination CurrentPage="@currentPage" 
+                    TotalPages="@seriesList.TotalPages" 
+                    OnPageChanged="HandlePageChanged" />
+    }
+}
+
+<ConfirmDialog IsVisible="@showDeleteConfirm"
+               Title="Seriyi Sil"
+               Message="@($"'{seriesToDelete?.Title}' serisini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve tüm bölüm ve sayfa verileri de silinecektir.")"
+               ConfirmText="Sil"
+               CancelText="İptal"
+               IsDanger="true"
+               OnConfirm="HandleDeleteConfirm"
+               OnCancel="HideDeleteConfirm" />
+
+@code {
+    private PaginatedResult<SeriesCardDto>? seriesList;
+    private bool isLoading = true;
+    private int currentPage = 1;
+    private const int PageSize = 20;
+
+    private bool showDeleteConfirm = false;
+    private SeriesCardDto? seriesToDelete;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSeriesAsync();
+    }
+
+    private async Task LoadSeriesAsync()
+    {
+        isLoading = true;
+        try
+        {
+            var filter = new LibraryFilter { Sort = SortOption.Alphabetical };
+            seriesList = await SeriesService.GetLibraryAsync(filter, currentPage, PageSize);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandlePageChanged(int page)
+    {
+        currentPage = page;
+        await LoadSeriesAsync();
+    }
+
+    private void ShowDeleteConfirm(SeriesCardDto series)
+    {
+        seriesToDelete = series;
+        showDeleteConfirm = true;
+    }
+
+    private void HideDeleteConfirm()
+    {
+        showDeleteConfirm = false;
+        seriesToDelete = null;
+    }
+
+    private async Task HandleDeleteConfirm()
+    {
+        if (seriesToDelete != null)
+        {
+            await SeriesService.DeleteSeriesAsync(seriesToDelete.Id);
+            HideDeleteConfirm();
+            await LoadSeriesAsync();
+        }
+    }
+
+    private string GetStatusText(SeriesStatus status) => status switch
+    {
+        SeriesStatus.NotStarted => "Başlanmadı",
+        SeriesStatus.Reading => "Okunuyor",
+        SeriesStatus.Completed => "Tamamlandı",
+        SeriesStatus.OnHold => "Beklemede",
+        SeriesStatus.Dropped => "Bırakıldı",
+        _ => status.ToString()
+    };
+}

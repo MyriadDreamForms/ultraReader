@@ -1,0 +1,129 @@
+@page "/library"
+@rendermode InteractiveServer
+@inject ISeriesService SeriesService
+@inject NavigationManager Navigation
+
+<PageTitle>Kütüphane - UltraReader</PageTitle>
+
+<h1>📚 Kütüphane</h1>
+
+<SearchFilter 
+    SearchTerm="@_filter.Search"
+    SelectedTag="@_filter.Tag"
+    SelectedStatus="@_filter.Status"
+    FavoritesOnly="@_filter.FavoritesOnly"
+    SortBy="@_filter.Sort"
+    AvailableTags="@_availableTags"
+    OnFilterChanged="HandleFilterChanged" />
+
+@if (_loading)
+{
+    <div class="loading">
+        <div class="loading-spinner"></div>
+    </div>
+}
+else if (_result == null || _result.Items.Count == 0)
+{
+    <div class="empty-state">
+        <div class="empty-state-icon">📚</div>
+        <h2 class="empty-state-title">Henüz seri yok</h2>
+        <p>Kütüphanenizde henüz seri bulunmuyor. Yönetim panelinden seri ekleyebilirsiniz.</p>
+        <a href="/admin/series" class="btn btn-primary">Seri Ekle</a>
+    </div>
+}
+else
+{
+    <div class="series-grid">
+        @foreach (var series in _result.Items)
+        {
+            <SeriesCard Series="@series" OnClick="NavigateToSeries" />
+        }
+    </div>
+
+    @if (_result.TotalPages > 1)
+    {
+        <Pagination 
+            CurrentPage="@_currentPage"
+            TotalPages="@_result.TotalPages"
+            TotalCount="@_result.TotalCount"
+            PageSize="@_pageSize"
+            OnPageChanged="HandlePageChanged" />
+    }
+}
+
+@code {
+    private LibraryFilter _filter = new();
+    private PaginatedResult<SeriesCardDto>? _result;
+    private List<string> _availableTags = [];
+    private bool _loading = true;
+    private int _currentPage = 1;
+    private const int _pageSize = 20;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTagsAsync();
+        await LoadDataAsync();
+    }
+
+    private async Task LoadTagsAsync()
+    {
+        try
+        {
+            _availableTags = await SeriesService.GetAllTagsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading tags: {ex.Message}");
+        }
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _loading = true;
+        StateHasChanged();
+
+        try
+        {
+            _result = await SeriesService.GetLibraryAsync(_filter, _currentPage, _pageSize);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading library: {ex.Message}");
+            _result = PaginatedResult<SeriesCardDto>.Empty();
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleFilterChanged(FilterChangedEventArgs args)
+    {
+        _filter = new LibraryFilter
+        {
+            Search = args.SearchTerm,
+            Tag = args.Tag,
+            Status = args.Status,
+            FavoritesOnly = args.FavoritesOnly,
+            Sort = args.SortBy
+        };
+        _currentPage = 1;
+        await LoadDataAsync();
+    }
+
+    private async Task HandlePageChanged(int newPage)
+    {
+        _currentPage = newPage;
+        await LoadDataAsync();
+    }
+
+    private void NavigateToSeries(int seriesId)
+    {
+        var series = _result?.Items.FirstOrDefault(s => s.Id == seriesId);
+        if (series != null)
+        {
+            Navigation.NavigateTo($"/series/{series.Slug}");
+        }
+    }
+}

@@ -1,0 +1,58 @@
+@using UltraReader.Services.DTOs
+
+<div class="series-card card" @onclick="HandleClick">
+    @if (Series.IsFavorite)
+    {
+        <span class="series-card-favorite">⭐</span>
+    }
+    
+    @if (Series.UnreadChapterCount > 0)
+    {
+        <span class="series-card-badge">@Series.UnreadChapterCount yeni</span>
+    }
+    
+    <ImagePlaceholder 
+        ImageUrl="@Series.CoverImageUrl"
+        AltText="@Series.Title"
+        CssClass="series-card-cover" />
+    
+    <div class="series-card-info">
+        <h3 class="series-card-title" title="@Series.Title">@Series.Title</h3>
+        <div class="series-card-status">
+            <span class="status-badge status-@GetStatusClass(Series.Status)">
+                @GetStatusText(Series.Status)
+            </span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public required SeriesCardDto Series { get; set; }
+    [Parameter] public EventCallback<int> OnClick { get; set; }
+    [Parameter] public EventCallback<int> OnFavoriteToggle { get; set; }
+
+    private async Task HandleClick()
+    {
+        await OnClick.InvokeAsync(Series.Id);
+    }
+
+    private string GetStatusClass(SeriesStatus status) => status switch
+    {
+        SeriesStatus.NotStarted => "not-started",
+        SeriesStatus.Reading => "reading",
+        SeriesStatus.Completed => "completed",
+        SeriesStatus.OnHold => "on-hold",
+        SeriesStatus.Dropped => "dropped",
+        _ => "not-started"
+    };
+
+    private string GetStatusText(SeriesStatus status) => status switch
+    {
+        SeriesStatus.NotStarted => "Başlanmadı",
+        SeriesStatus.Reading => "Okunuyor",
+        SeriesStatus.Completed => "Tamamlandı",
+        SeriesStatus.OnHold => "Beklemede",
+        SeriesStatus.Dropped => "Bırakıldı",
+        _ => "Bilinmiyor"
+    };
+}

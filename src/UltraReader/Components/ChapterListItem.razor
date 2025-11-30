@@ -1,0 +1,73 @@
+@using UltraReader.Services.DTOs
+
+<div class="chapter-item @(Chapter.IsRead ? "read" : "unread")">
+    <a href="/reader/@SeriesSlug/@Chapter.Number" class="chapter-link">
+        <div class="chapter-info">
+            <span class="chapter-number">
+                Bölüm @Chapter.Number
+            </span>
+            @if (!string.IsNullOrEmpty(Chapter.Title))
+            {
+                <span class="chapter-title">@Chapter.Title</span>
+            }
+        </div>
+        <div class="chapter-meta">
+            <span class="page-count">@Chapter.PageCount sayfa</span>
+            @if (Chapter.LastReadAt.HasValue)
+            {
+                <span class="last-read">@FormatLastRead(Chapter.LastReadAt.Value)</span>
+            }
+        </div>
+    </a>
+    <button class="btn btn-icon btn-read-toggle @(Chapter.IsRead ? "is-read" : "")" 
+            @onclick="OnToggleRead" 
+            @onclick:stopPropagation="true"
+            title="@(Chapter.IsRead ? "Okunmadı olarak işaretle" : "Okundu olarak işaretle")">
+        @if (Chapter.IsRead)
+        {
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        }
+        else
+        {
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+            </svg>
+        }
+    </button>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public ChapterListItemDto Chapter { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public string SeriesSlug { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<int> OnToggleReadStatus { get; set; }
+
+    private async Task OnToggleRead()
+    {
+        await OnToggleReadStatus.InvokeAsync(Chapter.Id);
+    }
+
+    private string FormatLastRead(DateTime date)
+    {
+        var diff = DateTime.UtcNow - date;
+        
+        if (diff.TotalMinutes < 1)
+            return "Az önce";
+        if (diff.TotalMinutes < 60)
+            return $"{(int)diff.TotalMinutes} dk önce";
+        if (diff.TotalHours < 24)
+            return $"{(int)diff.TotalHours} saat önce";
+        if (diff.TotalDays < 7)
+            return $"{(int)diff.TotalDays} gün önce";
+        if (diff.TotalDays < 30)
+            return $"{(int)(diff.TotalDays / 7)} hafta önce";
+        
+        return date.ToString("dd MMM yyyy");
+    }
+}

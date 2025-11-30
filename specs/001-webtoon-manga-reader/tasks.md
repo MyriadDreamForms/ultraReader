@@ -19,13 +19,13 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create .NET 10 Blazor Server project in src/UltraReader/
-- [ ] T002 [P] Configure appsettings.json with ConnectionStrings, WebtoonSettings, Kestrel endpoints in src/UltraReader/appsettings.json
-- [ ] T003 [P] Configure appsettings.Development.json in src/UltraReader/appsettings.Development.json
-- [ ] T004 [P] Add NuGet packages: Microsoft.EntityFrameworkCore.Sqlite, Microsoft.EntityFrameworkCore.Design in src/UltraReader/UltraReader.csproj
-- [ ] T005 [P] Create WebtoonSettings options class in src/UltraReader/Configuration/WebtoonSettings.cs
-- [ ] T006 [P] Create App_Data directory structure and add to .gitignore
-- [ ] T007 [P] Create placeholder.png image in src/UltraReader/wwwroot/images/placeholder.png
+- [X] T001 Create .NET 10 Blazor Server project in src/UltraReader/
+- [X] T002 [P] Configure appsettings.json with ConnectionStrings, WebtoonSettings, Kestrel endpoints in src/UltraReader/appsettings.json
+- [X] T003 [P] Configure appsettings.Development.json in src/UltraReader/appsettings.Development.json
+- [X] T004 [P] Add NuGet packages: Microsoft.EntityFrameworkCore.Sqlite, Microsoft.EntityFrameworkCore.Design in src/UltraReader/UltraReader.csproj
+- [X] T005 [P] Create WebtoonSettings options class in src/UltraReader/Configuration/WebtoonSettings.cs
+- [X] T006 [P] Create App_Data directory structure and add to .gitignore
+- [X] T007 [P] Create placeholder.png image in src/UltraReader/wwwroot/images/placeholder.png
 
 ---
 
@@ -35,21 +35,21 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T008 Create SeriesStatus enum in src/UltraReader/Entities/SeriesStatus.cs
-- [ ] T009 [P] Create Series entity class in src/UltraReader/Entities/Series.cs
-- [ ] T010 [P] Create Chapter entity class in src/UltraReader/Entities/Chapter.cs
-- [ ] T011 [P] Create Page entity class in src/UltraReader/Entities/Page.cs
-- [ ] T012 [P] Create ReadingProgress entity class in src/UltraReader/Entities/ReadingProgress.cs
-- [ ] T013 Create AppDbContext with entity configurations in src/UltraReader/Data/AppDbContext.cs
-- [ ] T014 Create initial EF Core migration in src/UltraReader/Data/Migrations/
-- [ ] T015 Configure Program.cs with DbContext, WebtoonSettings, and static file middleware in src/UltraReader/Program.cs
-- [ ] T016 [P] Create SortOption enum in src/UltraReader/Services/SortOption.cs
-- [ ] T017 [P] Create PaginatedResult<T> class in src/UltraReader/Services/PaginatedResult.cs
-- [ ] T018 [P] Create custom exception classes (NotFoundException, ValidationException) in src/UltraReader/Exceptions/
-- [ ] T019 [P] Create base CSS styles in src/UltraReader/wwwroot/css/app.css
-- [ ] T020 [P] Create MainLayout.razor in src/UltraReader/Components/Layout/MainLayout.razor
-- [ ] T021 [P] Create NavMenu.razor in src/UltraReader/Components/Layout/NavMenu.razor
-- [ ] T022 Create _Imports.razor with common using statements in src/UltraReader/Pages/_Imports.razor
+- [X] T008 Create SeriesStatus enum in src/UltraReader/Entities/SeriesStatus.cs
+- [X] T009 [P] Create Series entity class in src/UltraReader/Entities/Series.cs
+- [X] T010 [P] Create Chapter entity class in src/UltraReader/Entities/Chapter.cs
+- [X] T011 [P] Create Page entity class in src/UltraReader/Entities/Page.cs
+- [X] T012 [P] Create ReadingProgress entity class in src/UltraReader/Entities/ReadingProgress.cs
+- [X] T013 Create AppDbContext with entity configurations in src/UltraReader/Data/AppDbContext.cs
+- [X] T014 Create initial EF Core migration in src/UltraReader/Data/Migrations/ (using EnsureCreated instead)
+- [X] T015 Configure Program.cs with DbContext, WebtoonSettings, and static file middleware in src/UltraReader/Program.cs
+- [X] T016 [P] Create SortOption enum in src/UltraReader/Services/SortOption.cs
+- [X] T017 [P] Create PaginatedResult<T> class in src/UltraReader/Services/PaginatedResult.cs
+- [X] T018 [P] Create custom exception classes (NotFoundException, ValidationException) in src/UltraReader/Exceptions/
+- [X] T019 [P] Create base CSS styles in src/UltraReader/wwwroot/css/app.css
+- [X] T020 [P] Create MainLayout.razor in src/UltraReader/Components/Layout/MainLayout.razor
+- [X] T021 [P] Create NavMenu.razor in src/UltraReader/Components/Layout/NavMenu.razor
+- [X] T022 Create _Imports.razor with common using statements in src/UltraReader/Pages/_Imports.razor
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -63,16 +63,16 @@
 
 ### Implementation for User Story 1
 
-- [ ] T023 [P] [US1] Create reader.css with dark theme and mobile-first styles in src/UltraReader/wwwroot/css/reader.css
-- [ ] T024 [P] [US1] Create ReaderLayout.razor minimal layout in src/UltraReader/Components/Layout/ReaderLayout.razor
-- [ ] T025 [P] [US1] Create ImagePlaceholder.razor component with onerror fallback in src/UltraReader/Components/ImagePlaceholder.razor
-- [ ] T026 [P] [US1] Create IImageService interface in src/UltraReader/Services/IImageService.cs
-- [ ] T027 [US1] Implement ImageService with path validation and URL generation in src/UltraReader/Services/ImageService.cs
-- [ ] T028 [P] [US1] Create ReaderDataDto, ReaderPageDto records in src/UltraReader/Services/DTOs/ReaderDtos.cs
-- [ ] T029 [P] [US1] Create IReaderService interface in src/UltraReader/Services/IReaderService.cs
-- [ ] T030 [US1] Implement ReaderService with GetReaderDataAsync and UpdateReadingProgressAsync in src/UltraReader/Services/ReaderService.cs
-- [ ] T031 [US1] Create Reader.razor page with vertical scroll layout and chapter navigation in src/UltraReader/Pages/Reader.razor
-- [ ] T032 [US1] Register IImageService and IReaderService in Program.cs
+- [X] T023 [P] [US1] Create reader.css with dark theme and mobile-first styles in src/UltraReader/wwwroot/css/reader.css
+- [X] T024 [P] [US1] Create ReaderLayout.razor minimal layout in src/UltraReader/Components/Layout/ReaderLayout.razor
+- [X] T025 [P] [US1] Create ImagePlaceholder.razor component with onerror fallback in src/UltraReader/Components/ImagePlaceholder.razor
+- [X] T026 [P] [US1] Create IImageService interface in src/UltraReader/Services/IImageService.cs
+- [X] T027 [US1] Implement ImageService with path validation and URL generation in src/UltraReader/Services/ImageService.cs
+- [X] T028 [P] [US1] Create ReaderDataDto, ReaderPageDto records in src/UltraReader/Services/DTOs/ReaderDtos.cs
+- [X] T029 [P] [US1] Create IReaderService interface in src/UltraReader/Services/IReaderService.cs
+- [X] T030 [US1] Implement ReaderService with GetReaderDataAsync and UpdateReadingProgressAsync in src/UltraReader/Services/ReaderService.cs
+- [X] T031 [US1] Create Reader.razor page with vertical scroll layout and chapter navigation in src/UltraReader/Pages/Reader.razor
+- [X] T032 [US1] Register IImageService and IReaderService in Program.cs
 
 **Checkpoint**: Reader page works - can view chapters with images, navigate prev/next
 
@@ -86,17 +86,17 @@
 
 ### Implementation for User Story 2
 
-- [ ] T033 [P] [US2] Create SeriesCardDto record in src/UltraReader/Services/DTOs/SeriesDtos.cs
-- [ ] T034 [P] [US2] Create LibraryFilter record in src/UltraReader/Services/DTOs/SeriesDtos.cs
-- [ ] T035 [P] [US2] Create ISeriesService interface in src/UltraReader/Services/ISeriesService.cs
-- [ ] T036 [US2] Implement SeriesService.GetLibraryAsync with filters and pagination in src/UltraReader/Services/SeriesService.cs
-- [ ] T037 [US2] Implement SeriesService.GetAllTagsAsync in src/UltraReader/Services/SeriesService.cs
-- [ ] T038 [P] [US2] Create FilterChangedEventArgs record in src/UltraReader/Components/FilterChangedEventArgs.cs
-- [ ] T039 [P] [US2] Create SearchFilter.razor component in src/UltraReader/Components/SearchFilter.razor
-- [ ] T040 [P] [US2] Create Pagination.razor component in src/UltraReader/Components/Pagination.razor
-- [ ] T041 [P] [US2] Create SeriesCard.razor component in src/UltraReader/Components/SeriesCard.razor
-- [ ] T042 [US2] Create Library.razor page with grid, search, filters, sorting in src/UltraReader/Pages/Library.razor
-- [ ] T043 [US2] Register ISeriesService in Program.cs
+- [X] T033 [P] [US2] Create SeriesCardDto record in src/UltraReader/Services/DTOs/SeriesDtos.cs
+- [X] T034 [P] [US2] Create LibraryFilter record in src/UltraReader/Services/DTOs/SeriesDtos.cs
+- [X] T035 [P] [US2] Create ISeriesService interface in src/UltraReader/Services/ISeriesService.cs
+- [X] T036 [US2] Implement SeriesService.GetLibraryAsync with filters and pagination in src/UltraReader/Services/SeriesService.cs
+- [X] T037 [US2] Implement SeriesService.GetAllTagsAsync in src/UltraReader/Services/SeriesService.cs
+- [X] T038 [P] [US2] Create FilterChangedEventArgs record in src/UltraReader/Components/FilterChangedEventArgs.cs
+- [X] T039 [P] [US2] Create SearchFilter.razor component in src/UltraReader/Components/SearchFilter.razor
+- [X] T040 [P] [US2] Create Pagination.razor component in src/UltraReader/Components/Pagination.razor
+- [X] T041 [P] [US2] Create SeriesCard.razor component in src/UltraReader/Components/SeriesCard.razor
+- [X] T042 [US2] Create Library.razor page with grid, search, filters, sorting in src/UltraReader/Pages/Library.razor
+- [X] T043 [US2] Register ISeriesService in Program.cs
 
 **Checkpoint**: Library page works - can browse, search, filter series
 
@@ -110,11 +110,11 @@
 
 ### Implementation for User Story 3
 
-- [ ] T044 [P] [US3] Create SeriesDetailDto record in src/UltraReader/Services/DTOs/SeriesDtos.cs
-- [ ] T045 [P] [US3] Create ChapterListItemDto record in src/UltraReader/Services/DTOs/ChapterDtos.cs
-- [ ] T046 [US3] Implement SeriesService.GetSeriesDetailAsync with chapters and read status in src/UltraReader/Services/SeriesService.cs
-- [ ] T047 [P] [US3] Create ChapterListItem.razor component with read/unread indicator in src/UltraReader/Components/ChapterListItem.razor
-- [ ] T048 [US3] Create SeriesDetail.razor page with info and chapter list in src/UltraReader/Pages/SeriesDetail.razor
+- [X] T044 [P] [US3] Create SeriesDetailDto record in src/UltraReader/Services/DTOs/SeriesDtos.cs
+- [X] T045 [P] [US3] Create ChapterListItemDto record in src/UltraReader/Services/DTOs/ChapterDtos.cs
+- [X] T046 [US3] Implement SeriesService.GetSeriesDetailAsync with chapters and read status in src/UltraReader/Services/SeriesService.cs
+- [X] T047 [P] [US3] Create ChapterListItem.razor component with read/unread indicator in src/UltraReader/Components/ChapterListItem.razor
+- [X] T048 [US3] Create SeriesDetail.razor page with info and chapter list in src/UltraReader/Pages/SeriesDetail.razor
 
 **Checkpoint**: Series detail works - can see chapters, navigate to reader, see read status
 
@@ -128,11 +128,11 @@
 
 ### Implementation for User Story 4
 
-- [ ] T049 [P] [US4] Create IChapterService interface with MarkAsReadAsync/MarkAsUnreadAsync in src/UltraReader/Services/IChapterService.cs
-- [ ] T050 [US4] Implement ChapterService with read status toggle in src/UltraReader/Services/ChapterService.cs
-- [ ] T051 [US4] Update ReaderService to update ReadingProgress on chapter open in src/UltraReader/Services/ReaderService.cs
-- [ ] T052 [US4] Add toggle read button to ChapterListItem.razor in src/UltraReader/Components/ChapterListItem.razor
-- [ ] T053 [US4] Register IChapterService in Program.cs
+- [X] T049 [P] [US4] Create IChapterService interface with MarkAsReadAsync/MarkAsUnreadAsync in src/UltraReader/Services/IChapterService.cs
+- [X] T050 [US4] Implement ChapterService with read status toggle in src/UltraReader/Services/ChapterService.cs
+- [X] T051 [US4] Update ReaderService to update ReadingProgress on chapter open in src/UltraReader/Services/ReaderService.cs
+- [X] T052 [US4] Add toggle read button to ChapterListItem.razor in src/UltraReader/Components/ChapterListItem.razor
+- [X] T053 [US4] Register IChapterService in Program.cs
 
 **Checkpoint**: Reading progress tracking works - can see and toggle read status
 
@@ -146,11 +146,11 @@
 
 ### Implementation for User Story 5
 
-- [ ] T054 [P] [US5] Create CreateSeriesCommand, UpdateSeriesCommand records in src/UltraReader/Services/DTOs/SeriesDtos.cs
-- [ ] T055 [US5] Implement SeriesService CRUD: CreateSeriesAsync, UpdateSeriesAsync, DeleteSeriesAsync, ToggleFavoriteAsync in src/UltraReader/Services/SeriesService.cs
-- [ ] T056 [P] [US5] Create ConfirmDialog.razor component in src/UltraReader/Components/ConfirmDialog.razor
-- [ ] T057 [US5] Create Admin/SeriesManagement.razor with list and actions in src/UltraReader/Pages/Admin/SeriesManagement.razor
-- [ ] T058 [US5] Create Admin/SeriesEdit.razor for create/edit form in src/UltraReader/Pages/Admin/SeriesEdit.razor
+- [X] T054 [P] [US5] Create CreateSeriesCommand, UpdateSeriesCommand records in src/UltraReader/Services/DTOs/SeriesDtos.cs
+- [X] T055 [US5] Implement SeriesService CRUD: CreateSeriesAsync, UpdateSeriesAsync, DeleteSeriesAsync, ToggleFavoriteAsync in src/UltraReader/Services/SeriesService.cs
+- [X] T056 [P] [US5] Create ConfirmDialog.razor component in src/UltraReader/Components/ConfirmDialog.razor
+- [X] T057 [US5] Create Admin/SeriesManagement.razor with list and actions in src/UltraReader/Pages/Admin/SeriesManagement.razor
+- [X] T058 [US5] Create Admin/SeriesEdit.razor for create/edit form in src/UltraReader/Pages/Admin/SeriesEdit.razor
 
 **Checkpoint**: Series CRUD works - can manage series through admin UI
 
@@ -164,10 +164,10 @@
 
 ### Implementation for User Story 6
 
-- [ ] T059 [P] [US6] Create CreateChapterCommand, UpdateChapterCommand, ChapterEditDto records in src/UltraReader/Services/DTOs/ChapterDtos.cs
-- [ ] T060 [US6] Implement ChapterService CRUD: GetChaptersAsync, GetChapterForEditAsync, CreateChapterAsync, UpdateChapterAsync, DeleteChapterAsync in src/UltraReader/Services/ChapterService.cs
-- [ ] T061 [US6] Create Admin/ChapterManagement.razor with list and actions in src/UltraReader/Pages/Admin/ChapterManagement.razor
-- [ ] T062 [US6] Create Admin/ChapterEdit.razor for create/edit form in src/UltraReader/Pages/Admin/ChapterEdit.razor
+- [X] T059 [P] [US6] Create CreateChapterCommand, UpdateChapterCommand, ChapterEditDto records in src/UltraReader/Services/DTOs/ChapterDtos.cs
+- [X] T060 [US6] Implement ChapterService CRUD: GetChaptersAsync, GetChapterForEditAsync, CreateChapterAsync, UpdateChapterAsync, DeleteChapterAsync in src/UltraReader/Services/ChapterService.cs
+- [X] T061 [US6] Create Admin/ChapterManagement.razor with list and actions in src/UltraReader/Pages/Admin/ChapterManagement.razor
+- [X] T062 [US6] Create Admin/ChapterEdit.razor for create/edit form in src/UltraReader/Pages/Admin/ChapterEdit.razor
 
 **Checkpoint**: Chapter CRUD works - can manage chapters through admin UI
 
@@ -181,13 +181,13 @@
 
 ### Implementation for User Story 7
 
-- [ ] T063 [P] [US7] Create PageDto, AddPageCommand records in src/UltraReader/Services/DTOs/PageDtos.cs
-- [ ] T064 [P] [US7] Create IPageService interface in src/UltraReader/Services/IPageService.cs
-- [ ] T065 [P] [US7] Create IFolderImportService interface in src/UltraReader/Services/IFolderImportService.cs
-- [ ] T066 [US7] Implement FolderImportService with natural sort in src/UltraReader/Services/FolderImportService.cs
-- [ ] T067 [US7] Implement PageService: GetPagesAsync, AddPageAsync, UpdatePageOrderAsync, DeletePageAsync, ImportFromFolderAsync in src/UltraReader/Services/PageService.cs
-- [ ] T068 [US7] Create Admin/PageManagement.razor with list, reorder, import in src/UltraReader/Pages/Admin/PageManagement.razor
-- [ ] T069 [US7] Register IPageService and IFolderImportService in Program.cs
+- [X] T063 [P] [US7] Create PageDto, AddPageCommand records in src/UltraReader/Services/DTOs/PageDtos.cs
+- [X] T064 [P] [US7] Create IPageService interface in src/UltraReader/Services/IPageService.cs
+- [X] T065 [P] [US7] Create IFolderImportService interface in src/UltraReader/Services/IFolderImportService.cs
+- [X] T066 [US7] Implement FolderImportService with natural sort in src/UltraReader/Services/FolderImportService.cs
+- [X] T067 [US7] Implement PageService: GetPagesAsync, AddPageAsync, UpdatePageOrderAsync, DeletePageAsync, ImportFromFolderAsync in src/UltraReader/Services/PageService.cs
+- [X] T068 [US7] Create Admin/PageManagement.razor with list, reorder, import in src/UltraReader/Pages/Admin/PageManagement.razor
+- [X] T069 [US7] Register IPageService and IFolderImportService in Program.cs
 
 **Checkpoint**: Page management works - can add, reorder, import pages
 
@@ -219,9 +219,9 @@
 
 ### Implementation for User Story 9
 
-- [ ] T075 [US9] Add favorite toggle button to SeriesCard.razor in src/UltraReader/Components/SeriesCard.razor
-- [ ] T076 [US9] Add favorite toggle to SeriesDetail.razor in src/UltraReader/Pages/SeriesDetail.razor
-- [ ] T077 [US9] Add favorites filter option to SearchFilter.razor in src/UltraReader/Components/SearchFilter.razor
+- [X] T075 [US9] Add favorite toggle button to SeriesCard.razor in src/UltraReader/Components/SeriesCard.razor
+- [X] T076 [US9] Add favorite toggle to SeriesDetail.razor in src/UltraReader/Pages/SeriesDetail.razor
+- [X] T077 [US9] Add favorites filter option to SearchFilter.razor in src/UltraReader/Components/SearchFilter.razor
 
 **Checkpoint**: Favorites work - can toggle and filter favorites
 
@@ -235,11 +235,11 @@
 
 ### Implementation for User Story 10
 
-- [ ] T078 [P] [US10] Create ContinueReadingDto, RecentlyUpdatedDto records in src/UltraReader/Services/DTOs/DashboardDtos.cs
-- [ ] T079 [P] [US10] Create IDashboardService interface in src/UltraReader/Services/IDashboardService.cs
-- [ ] T080 [US10] Implement DashboardService with GetContinueReadingAsync and GetRecentlyUpdatedAsync in src/UltraReader/Services/DashboardService.cs
-- [ ] T081 [US10] Create Index.razor dashboard page in src/UltraReader/Pages/Index.razor
-- [ ] T082 [US10] Register IDashboardService in Program.cs
+- [X] T078 [P] [US10] Create ContinueReadingDto, RecentlyUpdatedDto records in src/UltraReader/Services/DTOs/DashboardDtos.cs
+- [X] T079 [P] [US10] Create IDashboardService interface in src/UltraReader/Services/IDashboardService.cs
+- [X] T080 [US10] Implement DashboardService with GetContinueReadingAsync and GetRecentlyUpdatedAsync in src/UltraReader/Services/DashboardService.cs
+- [X] T081 [US10] Create Index.razor dashboard page in src/UltraReader/Pages/Index.razor
+- [X] T082 [US10] Register IDashboardService in Program.cs
 
 **Checkpoint**: Dashboard works - shows continue reading and recent updates
 
@@ -249,11 +249,11 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T083 [P] Add responsive CSS improvements to app.css in src/UltraReader/wwwroot/css/app.css
-- [ ] T084 [P] Add logging to all services for error tracking
-- [ ] T085 [P] Add empty state messages for no series, no chapters, no pages
-- [ ] T086 Validate quickstart.md instructions work end-to-end
-- [ ] T087 [P] Create README.md with setup instructions at repository root
+- [X] T083 [P] Add responsive CSS improvements to app.css in src/UltraReader/wwwroot/css/app.css
+- [X] T084 [P] Add logging to all services for error tracking
+- [X] T085 [P] Add empty state messages for no series, no chapters, no pages
+- [X] T086 Validate quickstart.md instructions work end-to-end
+- [X] T087 [P] Create README.md with setup instructions at repository root
 
 ---
 

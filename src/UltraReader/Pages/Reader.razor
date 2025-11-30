@@ -1,0 +1,154 @@
+@page "/reader/{SeriesSlug}/{ChapterNumber:decimal}"
+@layout ReaderLayout
+@rendermode InteractiveServer
+@inject IReaderService ReaderService
+@inject NavigationManager Navigation
+
+<PageTitle>@(_data?.SeriesTitle ?? "Reader") - Bölüm @ChapterNumber</PageTitle>
+
+@if (_loading)
+{
+    <div class="reader-loading">
+        <div class="reader-loading-spinner"></div>
+    </div>
+}
+else if (_data == null)
+{
+    <div class="reader-error">
+        <div class="reader-error-icon">📖</div>
+        <h2 class="reader-error-title">Bölüm Bulunamadı</h2>
+        <p class="reader-error-message">İstenen bölüm mevcut değil veya silinmiş olabilir.</p>
+        <a href="/library" class="reader-footer-btn primary">Kütüphaneye Dön</a>
+    </div>
+}
+else
+{
+    <!-- Header -->
+    <header class="reader-header">
+        <div class="reader-header-content">
+            <a href="/series/@_data.SeriesSlug" class="reader-back-btn">
+                ← <span>Bölümler</span>
+            </a>
+            
+            <div class="reader-title">
+                <span class="reader-title-series">@_data.SeriesTitle</span>
+                <span class="reader-title-chapter"> - Bölüm @_data.ChapterNumber@(!string.IsNullOrEmpty(_data.ChapterTitle) ? $": {_data.ChapterTitle}" : "")</span>
+            </div>
+            
+            <nav class="reader-nav">
+                @if (_data.PreviousChapterNumber.HasValue)
+                {
+                    <a href="/reader/@_data.SeriesSlug/@_data.PreviousChapterNumber" class="reader-nav-btn" title="Önceki Bölüm">
+                        ◀
+                    </a>
+                }
+                else
+                {
+                    <button class="reader-nav-btn" disabled title="İlk Bölüm">◀</button>
+                }
+                
+                @if (_data.NextChapterNumber.HasValue)
+                {
+                    <a href="/reader/@_data.SeriesSlug/@_data.NextChapterNumber" class="reader-nav-btn" title="Sonraki Bölüm">
+                        ▶
+                    </a>
+                }
+                else
+                {
+                    <button class="reader-nav-btn" disabled title="Son Bölüm">▶</button>
+                }
+            </nav>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <div class="reader-content">
+        <div class="reader-pages">
+            @if (_data.Pages.Count == 0)
+            {
+                <div class="reader-error" style="min-height: 30vh;">
+                    <div class="reader-error-icon">🖼️</div>
+                    <h3 class="reader-error-title">Sayfa Bulunamadı</h3>
+                    <p class="reader-error-message">Bu bölümde henüz sayfa yok.</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var readerPage in _data.Pages)
+                {
+                    <div class="reader-page">
+                        <ImagePlaceholder 
+                            ImageUrl="@readerPage.ImageUrl" 
+                            AltText="@($"Sayfa {readerPage.PageNumber}")"
+                            CssClass="reader-page-image" />
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- Footer Navigation -->
+    <footer class="reader-footer">
+        <div class="reader-footer-content">
+            @if (_data.PreviousChapterNumber.HasValue)
+            {
+                <a href="/reader/@_data.SeriesSlug/@_data.PreviousChapterNumber" class="reader-footer-btn">
+                    ← Önceki Bölüm
+                </a>
+            }
+            else
+            {
+                <span class="reader-footer-btn disabled">← Önceki Bölüm</span>
+            }
+            
+            <a href="/series/@_data.SeriesSlug" class="reader-footer-btn">
+                📚 Bölüm Listesi
+            </a>
+            
+            @if (_data.NextChapterNumber.HasValue)
+            {
+                <a href="/reader/@_data.SeriesSlug/@_data.NextChapterNumber" class="reader-footer-btn primary">
+                    Sonraki Bölüm →
+                </a>
+            }
+            else
+            {
+                <span class="reader-footer-btn disabled">Sonraki Bölüm →</span>
+            }
+        </div>
+    </footer>
+}
+
+@code {
+    [Parameter] public string SeriesSlug { get; set; } = string.Empty;
+    [Parameter] public decimal ChapterNumber { get; set; }
+
+    private ReaderDataDto? _data;
+    private bool _loading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        StateHasChanged();
+
+        try
+        {
+            _data = await ReaderService.GetReaderDataAsync(SeriesSlug, ChapterNumber);
+            
+            if (_data != null)
+            {
+                // Update reading progress in the background
+                _ = ReaderService.UpdateReadingProgressAsync(SeriesSlug, ChapterNumber);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading reader data: {ex.Message}");
+            _data = null;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

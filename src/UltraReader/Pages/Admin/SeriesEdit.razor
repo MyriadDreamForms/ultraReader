@@ -1,0 +1,228 @@
+@page "/admin/series/new"
+@page "/admin/series/{Id:int}/edit"
+@using UltraReader.Services
+@using UltraReader.Services.DTOs
+@using UltraReader.Entities
+@inject ISeriesService SeriesService
+@inject NavigationManager Navigation
+
+<PageTitle>@(IsNew ? "Yeni Seri" : "Seri Düzenle") - UltraReader</PageTitle>
+
+<div class="admin-header">
+    <h1>@(IsNew ? "Yeni Seri Oluştur" : "Seri Düzenle")</h1>
+    <a href="/admin/series" class="btn btn-outline">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Geri
+    </a>
+</div>
+
+@if (isLoading)
+{
+    <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <p>Yükleniyor...</p>
+    </div>
+}
+else if (!IsNew && model == null)
+{
+    <div class="error-container">
+        <h2>Seri bulunamadı</h2>
+        <p>Düzenlemek istediğiniz seri mevcut değil.</p>
+        <a href="/admin/series" class="btn btn-primary">Seri Listesine Dön</a>
+    </div>
+}
+else
+{
+    <div class="form-container">
+        <EditForm Model="model" OnValidSubmit="HandleSubmit">
+            <DataAnnotationsValidator />
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger">@errorMessage</div>
+            }
+
+            <div class="form-row">
+                <div class="form-group flex-1">
+                    <label class="form-label" for="title">Başlık *</label>
+                    <InputText id="title" class="form-input" @bind-Value="model!.Title" placeholder="Seri başlığı" />
+                    <ValidationMessage For="@(() => model!.Title)" />
+                </div>
+                <div class="form-group flex-1">
+                    <label class="form-label" for="originalTitle">Orijinal Başlık</label>
+                    <InputText id="originalTitle" class="form-input" @bind-Value="model!.OriginalTitle" placeholder="Orijinal dildeki başlık" />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group flex-1">
+                    <label class="form-label" for="slug">Slug *</label>
+                    <InputText id="slug" class="form-input" @bind-Value="model!.Slug" placeholder="seri-adi" />
+                    <ValidationMessage For="@(() => model!.Slug)" />
+                    <span class="form-hint">URL'de kullanılacak benzersiz tanımlayıcı (örn: my-series)</span>
+                </div>
+                <div class="form-group flex-1">
+                    <label class="form-label" for="status">Durum</label>
+                    <InputSelect id="status" class="form-select" @bind-Value="model!.Status">
+                        <option value="@SeriesStatus.NotStarted">Başlanmadı</option>
+                        <option value="@SeriesStatus.Reading">Okunuyor</option>
+                        <option value="@SeriesStatus.Completed">Tamamlandı</option>
+                        <option value="@SeriesStatus.OnHold">Beklemede</option>
+                        <option value="@SeriesStatus.Dropped">Bırakıldı</option>
+                    </InputSelect>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="coverPath">Kapak Resmi Yolu</label>
+                <InputText id="coverPath" class="form-input" @bind-Value="model!.CoverImagePath" placeholder="kapak/seri-adi/cover.jpg" />
+                <span class="form-hint">Content klasörü içindeki göreli yol</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="description">Açıklama</label>
+                <InputTextArea id="description" class="form-textarea" @bind-Value="model!.Description" rows="4" placeholder="Seri hakkında açıklama..." />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="tags">Etiketler</label>
+                <InputText id="tags" class="form-input" @bind-Value="tagsInput" placeholder="Aksiyon, Macera, Fantezi" />
+                <span class="form-hint">Virgülle ayırarak birden fazla etiket girebilirsiniz</span>
+            </div>
+
+            <div class="form-actions">
+                <a href="/admin/series" class="btn btn-outline">İptal</a>
+                <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                    @if (isSaving)
+                    {
+                        <span class="loading-spinner" style="width: 16px; height: 16px; margin-right: 0.5rem;"></span>
+                    }
+                    @(IsNew ? "Oluştur" : "Kaydet")
+                </button>
+            </div>
+        </EditForm>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private bool IsNew => Id == null;
+
+    private SeriesFormModel? model;
+    private string tagsInput = string.Empty;
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsNew)
+        {
+            model = new SeriesFormModel();
+            isLoading = false;
+        }
+        else
+        {
+            await LoadSeriesAsync();
+        }
+    }
+
+    private async Task LoadSeriesAsync()
+    {
+        isLoading = true;
+        try
+        {
+            var series = await SeriesService.GetSeriesDetailByIdAsync(Id!.Value);
+            if (series != null)
+            {
+                model = new SeriesFormModel
+                {
+                    Title = series.Title,
+                    OriginalTitle = series.OriginalTitle,
+                    Slug = series.Slug,
+                    Description = series.Description,
+                    Status = series.Status,
+                    CoverImagePath = series.CoverImagePath
+                };
+                tagsInput = string.Join(", ", series.Tags);
+            }
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (model == null) return;
+
+        isSaving = true;
+        errorMessage = null;
+
+        try
+        {
+            var tags = tagsInput
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToList();
+
+            if (IsNew)
+            {
+                var command = new CreateSeriesCommand
+                {
+                    Title = model.Title,
+                    OriginalTitle = model.OriginalTitle,
+                    Slug = model.Slug,
+                    Description = model.Description,
+                    Status = model.Status,
+                    CoverImagePath = model.CoverImagePath,
+                    Tags = tags
+                };
+                await SeriesService.CreateSeriesAsync(command);
+            }
+            else
+            {
+                var command = new UpdateSeriesCommand
+                {
+                    Title = model.Title,
+                    OriginalTitle = model.OriginalTitle,
+                    Slug = model.Slug,
+                    Description = model.Description,
+                    Status = model.Status,
+                    CoverImagePath = model.CoverImagePath,
+                    Tags = tags
+                };
+                await SeriesService.UpdateSeriesAsync(Id!.Value, command);
+            }
+
+            Navigation.NavigateTo("/admin/series");
+        }
+        catch (UltraReader.Exceptions.ValidationException ex)
+        {
+            errorMessage = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Bir hata oluştu: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private class SeriesFormModel
+    {
+        public string Title { get; set; } = string.Empty;
+        public string? OriginalTitle { get; set; }
+        public string Slug { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public SeriesStatus Status { get; set; } = SeriesStatus.NotStarted;
+        public string? CoverImagePath { get; set; }
+    }
+}

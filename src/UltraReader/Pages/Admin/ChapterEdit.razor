@@ -1,0 +1,199 @@
+@page "/admin/series/{SeriesId:int}/chapters/new"
+@page "/admin/series/{SeriesId:int}/chapters/{ChapterId:int}/edit"
+@using UltraReader.Services
+@using UltraReader.Services.DTOs
+@inject IChapterService ChapterService
+@inject ISeriesService SeriesService
+@inject NavigationManager Navigation
+
+<PageTitle>@(IsNew ? "Yeni Bölüm" : "Bölüm Düzenle") - UltraReader</PageTitle>
+
+<div class="admin-header">
+    <div>
+        <h1>@(IsNew ? "Yeni Bölüm Oluştur" : "Bölüm Düzenle")</h1>
+        @if (seriesTitle != null)
+        {
+            <p class="text-muted">@seriesTitle</p>
+        }
+    </div>
+    <a href="/admin/series/@SeriesId/chapters" class="btn btn-outline">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Geri
+    </a>
+</div>
+
+@if (isLoading)
+{
+    <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <p>Yükleniyor...</p>
+    </div>
+}
+else if (!IsNew && model == null)
+{
+    <div class="error-container">
+        <h2>Bölüm bulunamadı</h2>
+        <p>Düzenlemek istediğiniz bölüm mevcut değil.</p>
+        <a href="/admin/series/@SeriesId/chapters" class="btn btn-primary">Bölüm Listesine Dön</a>
+    </div>
+}
+else
+{
+    <div class="form-container">
+        <EditForm Model="model" OnValidSubmit="HandleSubmit">
+            <DataAnnotationsValidator />
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger">@errorMessage</div>
+            }
+
+            <div class="form-row">
+                <div class="form-group" style="width: 150px;">
+                    <label class="form-label" for="number">Bölüm No *</label>
+                    <InputNumber id="number" class="form-input" @bind-Value="model!.Number" />
+                    <ValidationMessage For="@(() => model!.Number)" />
+                </div>
+                <div class="form-group flex-1">
+                    <label class="form-label" for="title">Başlık</label>
+                    <InputText id="title" class="form-input" @bind-Value="model!.Title" placeholder="Bölüm başlığı (opsiyonel)" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="releaseDate">Yayın Tarihi</label>
+                <InputDate id="releaseDate" class="form-input" @bind-Value="model!.ReleaseDate" />
+                <span class="form-hint">Bölümün orijinal yayın tarihi (opsiyonel)</span>
+            </div>
+
+            <div class="form-actions">
+                <a href="/admin/series/@SeriesId/chapters" class="btn btn-outline">İptal</a>
+                <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                    @if (isSaving)
+                    {
+                        <span class="loading-spinner" style="width: 16px; height: 16px; margin-right: 0.5rem;"></span>
+                    }
+                    @(IsNew ? "Oluştur" : "Kaydet")
+                </button>
+            </div>
+        </EditForm>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int SeriesId { get; set; }
+
+    [Parameter]
+    public int? ChapterId { get; set; }
+
+    private bool IsNew => ChapterId == null;
+
+    private ChapterFormModel? model;
+    private string? seriesTitle;
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Get series title
+        var series = await SeriesService.GetSeriesDetailByIdAsync(SeriesId);
+        seriesTitle = series?.Title;
+
+        if (IsNew)
+        {
+            // Find next chapter number
+            var chapters = await ChapterService.GetChaptersAsync(SeriesId);
+            var maxNumber = chapters.Count > 0 ? chapters.Max(c => c.Number) : 0;
+            
+            model = new ChapterFormModel
+            {
+                Number = maxNumber + 1
+            };
+            isLoading = false;
+        }
+        else
+        {
+            await LoadChapterAsync();
+        }
+    }
+
+    private async Task LoadChapterAsync()
+    {
+        isLoading = true;
+        try
+        {
+            var chapter = await ChapterService.GetChapterForEditAsync(ChapterId!.Value);
+            if (chapter != null)
+            {
+                model = new ChapterFormModel
+                {
+                    Number = chapter.Number,
+                    Title = chapter.Title,
+                    ReleaseDate = chapter.ReleaseDate
+                };
+            }
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (model == null) return;
+
+        isSaving = true;
+        errorMessage = null;
+
+        try
+        {
+            if (IsNew)
+            {
+                var command = new CreateChapterCommand
+                {
+                    Number = model.Number,
+                    Title = model.Title,
+                    ReleaseDate = model.ReleaseDate
+                };
+                await ChapterService.CreateChapterAsync(SeriesId, command);
+            }
+            else
+            {
+                var command = new UpdateChapterCommand
+                {
+                    Number = model.Number,
+                    Title = model.Title,
+                    ReleaseDate = model.ReleaseDate
+                };
+                await ChapterService.UpdateChapterAsync(ChapterId!.Value, command);
+            }
+
+            Navigation.NavigateTo($"/admin/series/{SeriesId}/chapters");
+        }
+        catch (UltraReader.Exceptions.ValidationException ex)
+        {
+            errorMessage = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Bir hata oluştu: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private class ChapterFormModel
+    {
+        public decimal Number { get; set; } = 1;
+        public string? Title { get; set; }
+        public DateTime? ReleaseDate { get; set; }
+    }
+}
