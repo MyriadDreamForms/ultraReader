@@ -318,6 +318,11 @@ a:hover {
     font-size: 0.8rem;
 }
 
+.btn-xs {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+}
+
 .btn-lg {
     padding: 0.875rem 2rem;
     font-size: 1rem;
@@ -1586,4 +1591,287 @@ a:hover {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--color-border);
+}
+
+/* ========== File Picker ========== */
+.file-picker-input {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.file-picker-input .form-input {
+    flex: 1;
+    background: var(--color-bg-secondary);
+    cursor: pointer;
+}
+
+.cover-preview {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+}
+
+.cover-preview img {
+    width: 80px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+}
+
+/* ========== Cover Selector ========== */
+.input-file-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.folder-picker-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.folder-picker-actions label.btn {
+    cursor: pointer;
+    margin: 0;
+}
+
+.selected-folder-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(74, 222, 128, 0.1);
+    border: 1px solid rgba(74, 222, 128, 0.3);
+    border-radius: var(--radius-md);
+    color: #4ade80;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.selected-folder-name svg {
+    color: #4ade80;
+}
+
+.cover-selector {
+    margin-top: 0.75rem;
+}
+
+.cover-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 1rem;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 1rem;
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+}
+
+.cover-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+    border: 2px solid transparent;
+    gap: 0.25rem;
+}
+
+.cover-option:hover {
+    background: var(--color-bg-hover);
+}
+
+.cover-option.selected {
+    background: rgba(255, 109, 90, 0.1);
+    border-color: var(--color-primary);
+}
+
+.cover-option img {
+    width: 80px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+}
+
+.cover-option .btn {
+    margin-top: 0.25rem;
+    width: 100%;
+}
+
+.cover-name {
+    font-size: 0.7rem;
+    text-align: center;
+    color: var(--color-text-muted);
+    word-break: break-all;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.selected-cover-info {
+    margin-top: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 109, 90, 0.1);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-primary);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.9rem;
+}
+
+.selected-cover-info strong {
+    color: var(--color-primary);
+}
+
+.empty-state-small {
+    padding: 1.5rem;
+    text-align: center;
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+}
+
+.mt-2 {
+    margin-top: 0.5rem;
+}
+
+/* ========== File Browser Modal ========== */
+.file-browser-modal {
+    background: var(--color-bg-card);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    max-width: 800px;
+    width: 100%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--color-border);
+    animation: modalSlideIn 0.25s ease;
+}
+
+.file-browser-modal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.file-browser-path {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.path-display {
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin-left: 0.5rem;
+}
+
+.file-browser-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    min-height: 300px;
+    max-height: 400px;
+}
+
+.file-browser-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 1rem;
+}
+
+.file-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 0.5rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: 2px solid transparent;
+}
+
+.file-item:hover {
+    background: var(--color-bg-hover);
+}
+
+.file-item.selected {
+    background: rgba(255, 109, 90, 0.1);
+    border-color: var(--color-primary);
+}
+
+.file-item.folder .file-icon {
+    color: var(--color-warning);
+}
+
+.file-icon {
+    margin-bottom: 0.5rem;
+}
+
+.file-thumbnail {
+    width: 80px;
+    height: 80px;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.5rem;
+    background: var(--color-bg-secondary);
+}
+
+.file-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.file-name {
+    font-size: 0.8rem;
+    text-align: center;
+    word-break: break-all;
+    color: var(--color-text);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+@media (max-width: 640px) {
+    .file-browser-modal {
+        max-height: 90vh;
+    }
+    
+    .file-browser-grid {
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    }
+    
+    .file-thumbnail {
+        width: 60px;
+        height: 60px;
+    }
 }

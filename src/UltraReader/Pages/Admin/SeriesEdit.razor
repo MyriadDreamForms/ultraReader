@@ -1,9 +1,12 @@
 @page "/admin/series/new"
 @page "/admin/series/{Id:int}/edit"
+@rendermode InteractiveServer
 @using UltraReader.Services
 @using UltraReader.Services.DTOs
 @using UltraReader.Entities
 @inject ISeriesService SeriesService
+@inject IFolderImportService FolderImportService
+@inject IImageService ImageService
 @inject NavigationManager Navigation
 
 <PageTitle>@(IsNew ? "Yeni Seri" : "Seri Düzenle") - UltraReader</PageTitle>
@@ -77,9 +80,66 @@ else
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="coverPath">Kapak Resmi Yolu</label>
-                <InputText id="coverPath" class="form-input" @bind-Value="model!.CoverImagePath" placeholder="kapak/seri-adi/cover.jpg" />
-                <span class="form-hint">Content klasörü içindeki göreli yol</span>
+                <label class="form-label">Klasör ve Kapak Resmi Seç</label>
+                
+                <div class="folder-picker-actions">
+                    <InputFile OnChange="OnFilesSelected" multiple accept="image/*" class="input-file-hidden" id="coverPicker" />
+                    <label for="coverPicker" class="btn btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        Resim Seç
+                    </label>
+                    
+                    @if (folderImages.Count > 0)
+                    {
+                        <span class="selected-folder-name">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                            @folderImages.Count resim seçildi
+                        </span>
+                    }
+                </div>
+                <span class="form-hint">Kapak olarak kullanmak istediğiniz resimleri seçin.</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Kapak Resmi</label>
+                @if (folderImages.Count > 0)
+                {
+                    <div class="cover-selector">
+                        <div class="cover-grid">
+                            @foreach (var img in folderImages)
+                            {
+                                <div class="cover-option @(model!.CoverImagePath == img.SavedPath ? "selected" : "")">
+                                    <img src="/content/@img.SavedPath" alt="@img.Name" loading="lazy" />
+                                    <span class="cover-name">@img.Name</span>
+                                    <button type="button" class="btn btn-xs @(model!.CoverImagePath == img.SavedPath ? "btn-primary" : "btn-outline")" 
+                                            @onclick="() => SelectCover(img.SavedPath)">
+                                        @(model!.CoverImagePath == img.SavedPath ? "✓ Seçili" : "Seç")
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state-small">
+                        <p>Yukarıdan resim seçin.</p>
+                    </div>
+                }
+                
+                @if (!string.IsNullOrEmpty(model!.CoverImagePath))
+                {
+                    <div class="selected-cover-info">
+                        <strong>Kapak seçildi</strong>
+                        <button type="button" class="btn btn-sm btn-ghost" @onclick="ClearCover">Kaldır</button>
+                    </div>
+                }
             </div>
 
             <div class="form-group">
@@ -118,6 +178,8 @@ else
     private bool isLoading = true;
     private bool isSaving = false;
     private string? errorMessage;
+    
+    private List<FolderImageItem> folderImages = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -155,6 +217,56 @@ else
         finally
         {
             isLoading = false;
+        }
+    }
+
+    private async Task OnFilesSelected(InputFileChangeEventArgs e)
+    {
+        folderImages.Clear();
+        errorMessage = null;
+
+        try
+        {
+            var files = e.GetMultipleFiles(20); // Max 20 dosya
+
+            foreach (var file in files)
+            {
+                // Sadece resim dosyaları
+                if (file.ContentType.StartsWith("image/"))
+                {
+                    // Dosyayı diske kaydet
+                    using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10MB
+                    var savedPath = await ImageService.SaveCoverImageAsync(stream, file.Name);
+
+                    folderImages.Add(new FolderImageItem
+                    {
+                        Name = file.Name,
+                        SavedPath = savedPath
+                    });
+                }
+            }
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Resimler kaydedilirken hata: " + ex.Message;
+        }
+    }
+
+    private void SelectCover(string savedPath)
+    {
+        if (model != null)
+        {
+            model.CoverImagePath = savedPath;
+        }
+    }
+
+    private void ClearCover()
+    {
+        if (model != null)
+        {
+            model.CoverImagePath = null;
         }
     }
 
@@ -224,5 +336,11 @@ else
         public string? Description { get; set; }
         public SeriesStatus Status { get; set; } = SeriesStatus.NotStarted;
         public string? CoverImagePath { get; set; }
+    }
+
+    private class FolderImageItem
+    {
+        public string Name { get; set; } = string.Empty;
+        public string SavedPath { get; set; } = string.Empty;
     }
 }

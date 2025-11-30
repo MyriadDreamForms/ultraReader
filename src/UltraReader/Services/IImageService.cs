@@ -29,4 +29,14 @@ public interface IImageService
     /// Checks if a file exists at the given relative path.
     /// </summary>
     bool FileExists(string relativePath);
+
+    /// <summary>
+    /// Saves a cover image and returns the relative path.
+    /// </summary>
+    Task<string> SaveCoverImageAsync(Stream imageStream, string fileName);
+
+    /// <summary>
+    /// Deletes a cover image.
+    /// </summary>
+    void DeleteCoverImage(string relativePath);
 }

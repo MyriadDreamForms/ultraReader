@@ -37,6 +37,10 @@ public class Series
     [MaxLength(1000)]
     public string? CoverImagePath { get; set; }
 
+    /// <summary>Absolute path to the series folder on disk</summary>
+    [MaxLength(2000)]
+    public string? FolderPath { get; set; }
+
     /// <summary>Genre/category tags stored as JSON array</summary>
     public List<string> Tags { get; set; } = [];
 

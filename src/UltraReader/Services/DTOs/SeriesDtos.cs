@@ -46,6 +46,7 @@ public record SeriesDetailDto
     public bool IsFavorite { get; init; }
     public string? CoverImagePath { get; init; }
     public string? CoverImageUrl { get; init; }
+    public string? FolderPath { get; init; }
     public List<string> Tags { get; init; } = [];
     public List<ChapterListItemDto> Chapters { get; init; } = [];
     public int? LastReadChapterId { get; init; }
@@ -65,6 +66,7 @@ public record CreateSeriesCommand
     public string? Description { get; init; }
     public SeriesStatus Status { get; init; } = SeriesStatus.NotStarted;
     public string? CoverImagePath { get; init; }
+    public string? FolderPath { get; init; }
     public List<string> Tags { get; init; } = [];
 }
 
@@ -79,5 +81,6 @@ public record UpdateSeriesCommand
     public string? Description { get; init; }
     public SeriesStatus Status { get; init; }
     public string? CoverImagePath { get; init; }
+    public string? FolderPath { get; init; }
     public List<string> Tags { get; init; } = [];
 }

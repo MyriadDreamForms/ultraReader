@@ -48,7 +48,9 @@ public class DashboardService : IDashboardService
                 SeriesSlug = progress.Series.Slug,
                 CoverImageUrl = string.IsNullOrEmpty(progress.Series.CoverImagePath)
                     ? "/images/placeholder.png"
-                    : _imageService.GetImageUrl(progress.Series.CoverImagePath),
+                    : progress.Series.CoverImagePath.StartsWith("data:")
+                        ? progress.Series.CoverImagePath
+                        : _imageService.GetImageUrl(progress.Series.CoverImagePath),
                 NextChapterNumber = nextChapter?.Number ?? lastReadChapterNumber,
                 NextChapterId = nextChapter?.Id,
                 LastReadAt = progress.LastReadAt
@@ -75,7 +77,9 @@ public class DashboardService : IDashboardService
             SeriesSlug = s.Slug,
             CoverImageUrl = string.IsNullOrEmpty(s.CoverImagePath)
                 ? "/images/placeholder.png"
-                : _imageService.GetImageUrl(s.CoverImagePath),
+                : s.CoverImagePath.StartsWith("data:")
+                    ? s.CoverImagePath
+                    : _imageService.GetImageUrl(s.CoverImagePath),
             LatestChapterNumber = s.Chapters.Max(c => c.Number),
             UpdatedAt = s.UpdatedAt
         }).ToList();

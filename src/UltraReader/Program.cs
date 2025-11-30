@@ -53,14 +53,21 @@ var webtoonSettings = builder.Configuration
     .GetSection(WebtoonSettings.SectionName)
     .Get<WebtoonSettings>();
 
-if (webtoonSettings != null && !string.IsNullOrWhiteSpace(webtoonSettings.ContentRootPath) 
-    && Directory.Exists(webtoonSettings.ContentRootPath))
+if (webtoonSettings != null && !string.IsNullOrWhiteSpace(webtoonSettings.ContentRootPath))
 {
-    app.UseStaticFiles(new StaticFileOptions
+    // Göreceli yolu mutlak yola çevir
+    var contentPath = Path.IsPathRooted(webtoonSettings.ContentRootPath)
+        ? webtoonSettings.ContentRootPath
+        : Path.Combine(builder.Environment.ContentRootPath, webtoonSettings.ContentRootPath);
+
+    if (Directory.Exists(contentPath))
     {
-        FileProvider = new PhysicalFileProvider(webtoonSettings.ContentRootPath),
-        RequestPath = "/content"
-    });
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = new PhysicalFileProvider(contentPath),
+            RequestPath = "/content"
+        });
+    }
 }
 
 app.MapRazorComponents<App>()

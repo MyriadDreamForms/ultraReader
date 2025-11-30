@@ -10,11 +10,27 @@ public class ImageService : IImageService
 {
     private readonly WebtoonSettings _settings;
     private readonly ILogger<ImageService> _logger;
+    private readonly IWebHostEnvironment _environment;
+    private const string CoversFolder = "covers";
 
-    public ImageService(IOptions<WebtoonSettings> settings, ILogger<ImageService> logger)
+    public ImageService(IOptions<WebtoonSettings> settings, ILogger<ImageService> logger, IWebHostEnvironment environment)
     {
         _settings = settings.Value;
         _logger = logger;
+        _environment = environment;
+    }
+
+    /// <summary>
+    /// Gets the absolute path for the content root, handling relative paths.
+    /// </summary>
+    private string GetAbsoluteContentRootPath()
+    {
+        var contentRootPath = _settings.ContentRootPath ?? "Content";
+        
+        if (Path.IsPathRooted(contentRootPath))
+            return contentRootPath;
+        
+        return Path.Combine(_environment.ContentRootPath, contentRootPath);
     }
 
     public bool ValidateImagePath(string relativePath)
@@ -36,20 +52,23 @@ public class ImageService : IImageService
 
     public string GetFullPath(string relativePath)
     {
-        if (string.IsNullOrWhiteSpace(_settings.ContentRootPath))
-            throw new InvalidOperationException("Content root path is not configured");
+        var absoluteContentRoot = GetAbsoluteContentRootPath();
 
         // Normalize path separators
         var normalizedPath = relativePath.Replace('/', Path.DirectorySeparatorChar)
                                          .Replace('\\', Path.DirectorySeparatorChar);
 
-        return Path.Combine(_settings.ContentRootPath, normalizedPath);
+        return Path.Combine(absoluteContentRoot, normalizedPath);
     }
 
     public string GetImageUrl(string relativePath)
     {
         if (string.IsNullOrWhiteSpace(relativePath))
             return "/images/placeholder.png";
+
+        // Eğer base64 data URL ise direkt döndür (eski veriler için)
+        if (relativePath.StartsWith("data:"))
+            return relativePath;
 
         // Normalize to forward slashes for URL
         var urlPath = relativePath.Replace('\\', '/');
@@ -83,6 +102,48 @@ public class ImageService : IImageService
         {
             _logger.LogError(ex, "Error checking file existence: {Path}", relativePath);
             return false;
+        }
+    }
+
+    public async Task<string> SaveCoverImageAsync(Stream imageStream, string fileName)
+    {
+        // covers klasörünün mutlak yolunu al
+        var absoluteContentRoot = GetAbsoluteContentRootPath();
+        var coversPath = Path.Combine(absoluteContentRoot, CoversFolder);
+        Directory.CreateDirectory(coversPath);
+
+        // Benzersiz dosya adı oluştur
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        var uniqueFileName = $"{Guid.NewGuid()}{extension}";
+        var fullPath = Path.Combine(coversPath, uniqueFileName);
+
+        // Dosyayı kaydet
+        await using var fileStream = new FileStream(fullPath, FileMode.Create);
+        await imageStream.CopyToAsync(fileStream);
+
+        _logger.LogInformation("Cover image saved: {Path}", fullPath);
+
+        // Göreceli yolu döndür
+        return $"{CoversFolder}/{uniqueFileName}";
+    }
+
+    public void DeleteCoverImage(string relativePath)
+    {
+        if (string.IsNullOrWhiteSpace(relativePath) || relativePath.StartsWith("data:"))
+            return;
+
+        try
+        {
+            var fullPath = GetFullPath(relativePath);
+            if (File.Exists(fullPath))
+            {
+                File.Delete(fullPath);
+                _logger.LogInformation("Cover image deleted: {Path}", fullPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting cover image: {Path}", relativePath);
         }
     }
 }

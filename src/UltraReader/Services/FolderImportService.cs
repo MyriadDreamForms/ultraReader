@@ -11,12 +11,111 @@ public class FolderImportService : IFolderImportService
 {
     private readonly WebtoonSettings _settings;
     private readonly ILogger<FolderImportService> _logger;
+    private readonly IWebHostEnvironment _environment;
     private static readonly string[] ImageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"];
 
-    public FolderImportService(IOptions<WebtoonSettings> settings, ILogger<FolderImportService> logger)
+    public FolderImportService(IOptions<WebtoonSettings> settings, ILogger<FolderImportService> logger, IWebHostEnvironment environment)
     {
         _settings = settings.Value;
         _logger = logger;
+        _environment = environment;
+    }
+
+    private string GetAbsoluteContentRootPath()
+    {
+        if (string.IsNullOrWhiteSpace(_settings.ContentRootPath))
+            return string.Empty;
+
+        // Eğer mutlak yol ise direkt kullan, değilse uygulama dizinine göre çöz
+        if (Path.IsPathRooted(_settings.ContentRootPath))
+            return _settings.ContentRootPath;
+
+        return Path.Combine(_environment.ContentRootPath, _settings.ContentRootPath);
+    }
+
+    public string GetContentRootPath()
+    {
+        return GetAbsoluteContentRootPath();
+    }
+
+    public List<ContentBrowserItem> GetContentItems(string relativePath = "")
+    {
+        var items = new List<ContentBrowserItem>();
+        
+        var absoluteContentRoot = GetAbsoluteContentRootPath();
+        if (string.IsNullOrWhiteSpace(absoluteContentRoot))
+        {
+            _logger.LogWarning("ContentRootPath is not configured");
+            return items;
+        }
+
+        var basePath = Path.GetFullPath(absoluteContentRoot);
+        var targetPath = string.IsNullOrEmpty(relativePath) 
+            ? basePath 
+            : Path.GetFullPath(Path.Combine(basePath, relativePath));
+
+        // Security check
+        if (!targetPath.StartsWith(basePath, StringComparison.OrdinalIgnoreCase))
+        {
+            _logger.LogWarning("Attempted to access path outside content root: {Path}", targetPath);
+            return items;
+        }
+
+        if (!Directory.Exists(targetPath))
+        {
+            _logger.LogWarning("Directory does not exist: {Path}", targetPath);
+            return items;
+        }
+
+        try
+        {
+            // Get folders
+            var directories = Directory.GetDirectories(targetPath);
+            foreach (var dir in directories.OrderBy(d => Path.GetFileName(d)))
+            {
+                var folderName = Path.GetFileName(dir);
+                var folderRelativePath = string.IsNullOrEmpty(relativePath) 
+                    ? folderName 
+                    : Path.Combine(relativePath, folderName).Replace('\\', '/');
+
+                items.Add(new ContentBrowserItem
+                {
+                    Name = folderName,
+                    RelativePath = folderRelativePath,
+                    IsFolder = true,
+                    IsImage = false
+                });
+            }
+
+            // Get image files
+            var files = Directory.GetFiles(targetPath)
+                .Where(f => ImageExtensions.Contains(Path.GetExtension(f).ToLower()))
+                .ToList();
+
+            files.Sort(NaturalCompare);
+
+            foreach (var file in files)
+            {
+                var fileName = Path.GetFileName(file);
+                var fileRelativePath = string.IsNullOrEmpty(relativePath) 
+                    ? fileName 
+                    : Path.Combine(relativePath, fileName).Replace('\\', '/');
+
+                items.Add(new ContentBrowserItem
+                {
+                    Name = fileName,
+                    RelativePath = fileRelativePath,
+                    IsFolder = false,
+                    IsImage = true
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reading directory: {Path}", targetPath);
+        }
+
+        return items;
     }
 
     public List<string> GetImageFilesFromFolder(string folderPath)
@@ -40,10 +139,11 @@ public class FolderImportService : IFolderImportService
 
     public bool IsPathWithinContentRoot(string path)
     {
-        if (string.IsNullOrWhiteSpace(_settings.ContentRootPath))
+        var absoluteContentRoot = GetAbsoluteContentRootPath();
+        if (string.IsNullOrWhiteSpace(absoluteContentRoot))
             return false;
 
-        var contentRoot = Path.GetFullPath(_settings.ContentRootPath);
+        var contentRoot = Path.GetFullPath(absoluteContentRoot);
         var targetPath = Path.GetFullPath(path);
 
         return targetPath.StartsWith(contentRoot, StringComparison.OrdinalIgnoreCase);
@@ -51,10 +151,11 @@ public class FolderImportService : IFolderImportService
 
     public string GetRelativePath(string absolutePath)
     {
-        if (string.IsNullOrWhiteSpace(_settings.ContentRootPath))
+        var absoluteContentRoot = GetAbsoluteContentRootPath();
+        if (string.IsNullOrWhiteSpace(absoluteContentRoot))
             return absolutePath;
 
-        var contentRoot = Path.GetFullPath(_settings.ContentRootPath);
+        var contentRoot = Path.GetFullPath(absoluteContentRoot);
         var targetPath = Path.GetFullPath(absolutePath);
 
         if (targetPath.StartsWith(contentRoot, StringComparison.OrdinalIgnoreCase))

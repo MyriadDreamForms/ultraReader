@@ -147,6 +147,7 @@ public class SeriesService : ISeriesService
             Description = command.Description,
             Status = command.Status,
             CoverImagePath = command.CoverImagePath,
+            FolderPath = command.FolderPath,
             Tags = command.Tags,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -183,6 +184,7 @@ public class SeriesService : ISeriesService
         series.Description = command.Description;
         series.Status = command.Status;
         series.CoverImagePath = command.CoverImagePath;
+        series.FolderPath = command.FolderPath;
         series.Tags = command.Tags;
         series.UpdatedAt = DateTime.UtcNow;
 
@@ -233,7 +235,9 @@ public class SeriesService : ISeriesService
             CoverImagePath = series.CoverImagePath,
             CoverImageUrl = string.IsNullOrEmpty(series.CoverImagePath) 
                 ? "/images/placeholder.png" 
-                : _imageService.GetImageUrl(series.CoverImagePath),
+                : series.CoverImagePath.StartsWith("data:") 
+                    ? series.CoverImagePath 
+                    : _imageService.GetImageUrl(series.CoverImagePath),
             Status = series.Status,
             IsFavorite = series.IsFavorite,
             TotalChapters = series.Chapters.Count,
@@ -259,7 +263,10 @@ public class SeriesService : ISeriesService
             CoverImagePath = series.CoverImagePath,
             CoverImageUrl = string.IsNullOrEmpty(series.CoverImagePath)
                 ? "/images/placeholder.png"
-                : _imageService.GetImageUrl(series.CoverImagePath),
+                : series.CoverImagePath.StartsWith("data:") 
+                    ? series.CoverImagePath 
+                    : _imageService.GetImageUrl(series.CoverImagePath),
+            FolderPath = series.FolderPath,
             Tags = series.Tags,
             Chapters = series.Chapters.Select(c => new ChapterListItemDto
             {

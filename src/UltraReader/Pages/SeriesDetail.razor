@@ -1,4 +1,5 @@
 @page "/series/{Slug}"
+@rendermode InteractiveServer
 @using UltraReader.Services
 @using UltraReader.Services.DTOs
 @using UltraReader.Entities
@@ -28,7 +29,7 @@ else
     <div class="series-detail">
         <div class="series-header">
             <div class="series-cover">
-                <ImagePlaceholder Src="@series.CoverImageUrl" Alt="@series.Title" />
+                <ImagePlaceholder ImageUrl="@series.CoverImageUrl" AltText="@series.Title" />
             </div>
             <div class="series-info">
                 <h1 class="series-title">@series.Title</h1>
@@ -108,6 +109,22 @@ else
                             </svg>
                         }
                     </button>
+                    
+                    <a href="/admin/series/@series.Id/edit" class="btn btn-outline" title="Düzenle">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        Düzenle
+                    </a>
+                    
+                    <button class="btn btn-danger" @onclick="ShowDeleteConfirm" title="Sil">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        Sil
+                    </button>
                 </div>
             </div>
         </div>
@@ -146,6 +163,15 @@ else
             }
         </div>
     </div>
+    
+    <ConfirmDialog IsVisible="@showDeleteConfirm"
+                   Title="Seriyi Sil"
+                   Message="@($"'{series?.Title}' serisini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve tüm bölüm ve sayfa verileri de silinecektir.")"
+                   ConfirmText="Sil"
+                   CancelText="İptal"
+                   IsDanger="true"
+                   OnConfirm="HandleDeleteConfirm"
+                   OnCancel="HideDeleteConfirm" />
 }
 
 @code {
@@ -155,6 +181,7 @@ else
     private SeriesDetailDto? series;
     private bool isLoading = true;
     private bool sortAscending = true;
+    private bool showDeleteConfirm = false;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -203,6 +230,25 @@ else
     {
         await ChapterService.ToggleReadStatusAsync(chapterId);
         await LoadSeriesAsync();
+    }
+
+    private void ShowDeleteConfirm()
+    {
+        showDeleteConfirm = true;
+    }
+
+    private void HideDeleteConfirm()
+    {
+        showDeleteConfirm = false;
+    }
+
+    private async Task HandleDeleteConfirm()
+    {
+        if (series != null)
+        {
+            await SeriesService.DeleteSeriesAsync(series.Id);
+            Navigation.NavigateTo("/library");
+        }
     }
 
     private string GetStatusText(SeriesStatus status) => status switch
