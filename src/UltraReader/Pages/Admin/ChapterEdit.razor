@@ -135,13 +135,26 @@ else
                 }
                 else
                 {
-                    <div class="pages-grid">
+                    <div class="pages-list">
                         @foreach (var pageItem in pages.OrderBy(p => p.PageNumber))
                         {
-                            <div class="page-card">
+                            <div class="page-list-item">
+                                <div class="drag-handle" style="cursor: default; opacity: 0.3;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="9" cy="5" r="1"></circle>
+                                        <circle cx="9" cy="12" r="1"></circle>
+                                        <circle cx="9" cy="19" r="1"></circle>
+                                        <circle cx="15" cy="5" r="1"></circle>
+                                        <circle cx="15" cy="12" r="1"></circle>
+                                        <circle cx="15" cy="19" r="1"></circle>
+                                    </svg>
+                                </div>
                                 <div class="page-number">@pageItem.PageNumber</div>
                                 <img src="@pageItem.ImageUrl" alt="Sayfa @pageItem.PageNumber" loading="lazy" />
-                                <div class="page-actions">
+                                <input type="text" class="page-filename-input" value="@System.IO.Path.GetFileName(pageItem.ImagePath)" 
+                                       @onchange="(e) => UpdatePageFileName(pageItem, e.Value?.ToString())" 
+                                       title="Dosya adını düzenle" />
+                                <div class="page-list-actions">
                                     <button type="button" class="btn btn-icon btn-ghost" title="Yukarı Taşı" 
                                             disabled="@(pageItem.PageNumber == 1)"
                                             @onclick="() => MovePageUp(pageItem)">
@@ -167,6 +180,9 @@ else
                             </div>
                         }
                     </div>
+                    <p class="text-muted" style="margin-top: 0.75rem; font-size: 0.85rem; text-align: center;">
+                        Yukarı/aşağı butonlarını kullanarak sayfaları sıralayın
+                    </p>
                 }
             </div>
         }
@@ -210,14 +226,13 @@ else
                 }
                 else
                 {
-                    <div class="pages-grid" id="sortable-pages">
+                    <div class="pages-list" id="sortable-pages">
                         @foreach (var pending in pendingPages.OrderBy(p => p.Order))
                         {
-                            <div class="page-card draggable" draggable="true" data-order="@pending.Order" 
+                            <div class="page-list-item draggable" draggable="true" data-order="@pending.Order" 
                                  @ondragstart="() => HandleDragStart(pending)"
                                  @ondragover:preventDefault
                                  @ondrop="() => HandleDrop(pending)">
-                                <div class="page-number">@pending.Order</div>
                                 <div class="drag-handle">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <circle cx="9" cy="5" r="1"></circle>
@@ -228,29 +243,27 @@ else
                                         <circle cx="15" cy="19" r="1"></circle>
                                     </svg>
                                 </div>
+                                <div class="page-number">@pending.Order</div>
                                 <img src="@pending.PreviewUrl" alt="Sayfa @pending.Order" />
-                                <div class="page-actions">
-                                    <button type="button" class="btn btn-icon btn-danger-ghost" title="Sil"
-                                            @onclick="() => RemovePendingPage(pending)">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <polyline points="3 6 5 6 21 6"></polyline>
-                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                        </svg>
-                                    </button>
-                                </div>
+                                <input type="text" class="page-filename-input" value="@pending.FileName" 
+                                       @onchange="(e) => UpdateFileName(pending, e.Value?.ToString())" 
+                                       title="Dosya adını düzenle" />
+                                <button type="button" class="btn btn-icon btn-danger-ghost" title="Sil"
+                                        @onclick="() => RemovePendingPage(pending)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    </svg>
+                                </button>
                             </div>
                         }
                     </div>
                     <p class="text-muted" style="margin-top: 0.75rem; font-size: 0.85rem; text-align: center;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 0.25rem;">
-                            <polyline points="5 9 2 12 5 15"></polyline>
-                            <polyline points="9 5 12 2 15 5"></polyline>
-                            <polyline points="15 19 12 22 9 19"></polyline>
-                            <polyline points="19 9 22 12 19 15"></polyline>
-                            <line x1="2" y1="12" x2="22" y2="12"></line>
-                            <line x1="12" y1="2" x2="12" y2="22"></line>
+                            <polyline points="12 5 12 19"></polyline>
+                            <polyline points="5 12 12 19 19 12"></polyline>
                         </svg>
-                        Sürükleyerek sayfaları sıralayın
+                        Yukarı/aşağı sürükleyerek sayfaları sıralayın
                     </p>
                 }
             </div>
@@ -295,6 +308,117 @@ else
         margin-bottom: 1rem;
     }
 
+    /* Dikey liste düzeni - yeni bölüm oluştururken */
+    .pages-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .page-list-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+    }
+
+    .page-list-item:hover {
+        border-color: var(--primary);
+        background: var(--card-bg);
+    }
+
+    .page-list-item .drag-handle {
+        position: static;
+        background: transparent;
+        color: var(--text-secondary);
+        padding: 0.25rem;
+        cursor: grab;
+        opacity: 0.5;
+        transition: opacity 0.2s;
+        flex-shrink: 0;
+    }
+
+    .page-list-item:hover .drag-handle {
+        opacity: 1;
+    }
+
+    .page-list-item .page-number {
+        position: static;
+        background: var(--primary);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        min-width: 2rem;
+        text-align: center;
+        flex-shrink: 0;
+    }
+
+    .page-list-item img {
+        width: 60px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+
+    .page-list-item .page-filename-input {
+        flex: 1;
+        font-size: 0.85rem;
+        color: var(--text-primary);
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        padding: 0.25rem 0.5rem;
+        min-width: 0;
+        transition: all 0.2s ease;
+    }
+
+    .page-list-item .page-filename-input:hover {
+        border-color: var(--border-color);
+        background: var(--card-bg);
+    }
+
+    .page-list-item .page-filename-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: var(--card-bg);
+    }
+
+    .page-list-item .page-filename-display {
+        flex: 1;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .page-list-item .page-list-actions {
+        display: flex;
+        gap: 0.25rem;
+        flex-shrink: 0;
+    }
+
+    .page-list-item.draggable {
+        cursor: grab;
+    }
+
+    .page-list-item.draggable:active {
+        cursor: grabbing;
+    }
+
+    .page-list-item.drag-over {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px var(--primary);
+    }
+
+    /* Grid düzeni - mevcut bölüm düzenlerken */
     .pages-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -323,7 +447,7 @@ else
         display: block;
     }
 
-    .page-number {
+    .page-card .page-number {
         position: absolute;
         top: 0.5rem;
         left: 0.5rem;
@@ -336,7 +460,7 @@ else
         z-index: 1;
     }
 
-    .drag-handle {
+    .page-card .drag-handle {
         position: absolute;
         top: 0.5rem;
         right: 0.5rem;
@@ -350,7 +474,7 @@ else
         transition: opacity 0.2s;
     }
 
-    .drag-handle:hover {
+    .page-card .drag-handle:hover {
         opacity: 1;
     }
 
@@ -753,6 +877,22 @@ else
         }
     }
 
+    private async Task UpdatePageFileName(PageDto page, string? newFileName)
+    {
+        if (string.IsNullOrWhiteSpace(newFileName)) return;
+        
+        try
+        {
+            await PageService.UpdatePageFileNameAsync(page.Id, newFileName.Trim());
+            await LoadPagesAsync();
+            successMessage = $"Sayfa {page.PageNumber} dosya adı güncellendi.";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Dosya adı güncellenirken hata oluştu: " + ex.Message;
+        }
+    }
+
     private class ChapterFormModel
     {
         public decimal Number { get; set; } = 1;
@@ -769,12 +909,42 @@ else
         public string ContentType { get; set; } = string.Empty;
     }
 
+    // Dosya isimlerini doğal sıralama ile karşılaştır (1, 2, 10 doğru sırada gelir)
+    private static int NaturalCompare(string a, string b)
+    {
+        int ia = 0, ib = 0;
+        while (ia < a.Length && ib < b.Length)
+        {
+            if (char.IsDigit(a[ia]) && char.IsDigit(b[ib]))
+            {
+                // Sayı bloklarını karşılaştır
+                int numStartA = ia, numStartB = ib;
+                while (ia < a.Length && char.IsDigit(a[ia])) ia++;
+                while (ib < b.Length && char.IsDigit(b[ib])) ib++;
+                
+                var numA = long.Parse(a.Substring(numStartA, ia - numStartA));
+                var numB = long.Parse(b.Substring(numStartB, ib - numStartB));
+                
+                if (numA != numB) return numA.CompareTo(numB);
+            }
+            else
+            {
+                if (a[ia] != b[ib]) return a[ia].CompareTo(b[ib]);
+                ia++; ib++;
+            }
+        }
+        return a.Length.CompareTo(b.Length);
+    }
+
     private async Task OnNewPagesSelected(InputFileChangeEventArgs e)
     {
         var files = e.GetMultipleFiles(100);
         var currentMax = pendingPages.Count > 0 ? pendingPages.Max(p => p.Order) : 0;
 
-        foreach (var file in files.OrderBy(f => f.Name))
+        // Dosyaları doğal sıralama ile sırala
+        var sortedFiles = files.OrderBy(f => f.Name, Comparer<string>.Create(NaturalCompare));
+
+        foreach (var file in sortedFiles)
         {
             if (file.ContentType.StartsWith("image/"))
             {
@@ -813,6 +983,14 @@ else
         for (int i = 0; i < ordered.Count; i++)
         {
             ordered[i].Order = i + 1;
+        }
+    }
+
+    private void UpdateFileName(PendingPage page, string? newName)
+    {
+        if (!string.IsNullOrWhiteSpace(newName))
+        {
+            page.FileName = newName.Trim();
         }
     }
 

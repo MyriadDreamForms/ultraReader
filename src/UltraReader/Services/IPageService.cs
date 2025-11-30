@@ -28,6 +28,11 @@ public interface IPageService
     Task DeletePageAsync(int pageId);
 
     /// <summary>
+    /// Updates the filename of a page.
+    /// </summary>
+    Task UpdatePageFileNameAsync(int pageId, string newFileName);
+
+    /// <summary>
     /// Imports pages from a folder.
     /// </summary>
     Task<FolderImportResult> ImportFromFolderAsync(int chapterId, string folderPath);

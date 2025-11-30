@@ -453,10 +453,10 @@
                     FolderName = group.Key.ToString()
                 };
 
-                // Sayfa numarasına göre sırala, sonra dosya adına göre
+                // Sayfa numarasına göre sırala, sonra dosya adına göre (natural sort)
                 var sortedFiles = group.Value
                     .OrderBy(f => f.pageNum)
-                    .ThenBy(f => f.name, StringComparer.OrdinalIgnoreCase)
+                    .ThenBy(f => f.name, Comparer<string>.Create(NaturalCompare))
                     .ToList();
 
                 var pageOrder = 0;
@@ -564,6 +564,32 @@
         {
             isImporting = false;
         }
+    }
+
+    // Dosya isimlerini doğal sıralama ile karşılaştır (1, 2, 10 doğru sırada gelir)
+    private static int NaturalCompare(string a, string b)
+    {
+        int ia = 0, ib = 0;
+        while (ia < a.Length && ib < b.Length)
+        {
+            if (char.IsDigit(a[ia]) && char.IsDigit(b[ib]))
+            {
+                int numStartA = ia, numStartB = ib;
+                while (ia < a.Length && char.IsDigit(a[ia])) ia++;
+                while (ib < b.Length && char.IsDigit(b[ib])) ib++;
+                
+                var numA = long.Parse(a.Substring(numStartA, ia - numStartA));
+                var numB = long.Parse(b.Substring(numStartB, ib - numStartB));
+                
+                if (numA != numB) return numA.CompareTo(numB);
+            }
+            else
+            {
+                if (a[ia] != b[ib]) return a[ia].CompareTo(b[ib]);
+                ia++; ib++;
+            }
+        }
+        return a.Length.CompareTo(b.Length);
     }
 
     private class PendingChapter

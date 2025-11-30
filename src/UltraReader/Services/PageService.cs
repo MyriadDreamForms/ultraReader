@@ -98,6 +98,45 @@ public class PageService : IPageService
         _logger.LogInformation("Reordered {Count} pages in chapter {ChapterId}", pageIds.Count, chapterId);
     }
 
+    public async Task UpdatePageFileNameAsync(int pageId, string newFileName)
+    {
+        var page = await _context.Pages
+            .Include(p => p.Chapter)
+            .ThenInclude(c => c.Series)
+            .FirstOrDefaultAsync(p => p.Id == pageId);
+
+        if (page == null)
+        {
+            throw new NotFoundException("Page", pageId);
+        }
+
+        // Get the directory from current path and combine with new filename
+        var directory = Path.GetDirectoryName(page.ImagePath) ?? "";
+        var extension = Path.GetExtension(page.ImagePath);
+        
+        // Ensure new filename has proper extension
+        if (!Path.HasExtension(newFileName))
+        {
+            newFileName += extension;
+        }
+
+        // Rename the actual file
+        var oldFullPath = _imageService.GetFullPath(page.ImagePath);
+        var newRelativePath = Path.Combine(directory, newFileName).Replace("\\", "/");
+        var newFullPath = _imageService.GetFullPath(newRelativePath);
+
+        if (File.Exists(oldFullPath) && oldFullPath != newFullPath)
+        {
+            File.Move(oldFullPath, newFullPath);
+        }
+
+        page.ImagePath = newRelativePath;
+        page.Chapter.Series.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        
+        _logger.LogInformation("Renamed page {PageId} from {OldPath} to {NewPath}", pageId, oldFullPath, newFullPath);
+    }
+
     public async Task DeletePageAsync(int pageId)
     {
         var page = await _context.Pages
