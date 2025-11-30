@@ -127,6 +127,28 @@ public class ImageService : IImageService
         return $"{CoversFolder}/{uniqueFileName}";
     }
 
+    public async Task<string> SavePageImageAsync(Stream imageStream, string fileName, int chapterId)
+    {
+        // pages/{chapterId} klasörünün mutlak yolunu al
+        var absoluteContentRoot = GetAbsoluteContentRootPath();
+        var pagesPath = Path.Combine(absoluteContentRoot, "pages", chapterId.ToString());
+        Directory.CreateDirectory(pagesPath);
+
+        // Benzersiz dosya adı oluştur
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        var uniqueFileName = $"{Guid.NewGuid()}{extension}";
+        var fullPath = Path.Combine(pagesPath, uniqueFileName);
+
+        // Dosyayı kaydet
+        await using var fileStream = new FileStream(fullPath, FileMode.Create);
+        await imageStream.CopyToAsync(fileStream);
+
+        _logger.LogInformation("Page image saved: {Path}", fullPath);
+
+        // Göreceli yolu döndür
+        return $"pages/{chapterId}/{uniqueFileName}";
+    }
+
     public void DeleteCoverImage(string relativePath)
     {
         if (string.IsNullOrWhiteSpace(relativePath) || relativePath.StartsWith("data:"))

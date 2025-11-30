@@ -1,9 +1,15 @@
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using UltraReader.Components;
 using UltraReader.Configuration;
 using UltraReader.Data;
 using UltraReader.Services;
+
+// Use invariant culture for consistent decimal parsing in URLs
+var cultureInfo = CultureInfo.InvariantCulture;
+CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
 var builder = WebApplication.CreateBuilder(args);
 

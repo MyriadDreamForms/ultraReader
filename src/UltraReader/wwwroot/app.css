@@ -333,6 +333,11 @@ a:hover {
     aspect-ratio: 1;
 }
 
+.btn-danger-hover:hover {
+    color: var(--color-danger);
+    background: rgba(239, 68, 68, 0.1);
+}
+
 /* ========== Cards ========== */
 .card {
     background: var(--color-bg-card);
@@ -1079,6 +1084,34 @@ a:hover {
 
 .btn-read-toggle.is-read:hover {
     filter: brightness(1.1);
+}
+
+/* Chapter Actions */
+.chapter-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-left: 0.5rem;
+}
+
+.chapter-actions .btn-icon {
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.chapter-actions .btn-icon:hover {
+    color: var(--color-primary);
+    background: var(--color-bg-hover);
+}
+
+.chapter-actions .btn-danger-hover:hover {
+    color: var(--color-danger);
+    background: rgba(239, 68, 68, 0.1);
 }
 
 /* ========== Loading & Error Containers ========== */

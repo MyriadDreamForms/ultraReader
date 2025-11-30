@@ -36,6 +36,11 @@ public interface IImageService
     Task<string> SaveCoverImageAsync(Stream imageStream, string fileName);
 
     /// <summary>
+    /// Saves a page image and returns the relative path.
+    /// </summary>
+    Task<string> SavePageImageAsync(Stream imageStream, string fileName, int chapterId);
+
+    /// <summary>
     /// Deletes a cover image.
     /// </summary>
     void DeleteCoverImage(string relativePath);

@@ -132,7 +132,14 @@ else
         <div class="chapters-section">
             <div class="chapters-header">
                 <h2>Bölümler</h2>
-                <div class="chapters-filter">
+                <div class="chapters-actions">
+                    <a href="/admin/series/@series.Id/chapters/new" class="btn btn-primary btn-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Bölüm Ekle
+                    </a>
                     <button class="btn btn-sm @(sortAscending ? "btn-active" : "")" @onclick="ToggleSortOrder">
                         @if (sortAscending)
                         {
@@ -157,7 +164,7 @@ else
                 <div class="chapters-list">
                     @foreach (var chapter in GetSortedChapters())
                     {
-                        <ChapterListItem Chapter="chapter" SeriesSlug="@series.Slug" OnToggleReadStatus="HandleToggleReadStatus" />
+                        <ChapterListItem Chapter="chapter" SeriesSlug="@series.Slug" SeriesId="@series.Id" OnToggleReadStatus="HandleToggleReadStatus" OnDeleteChapter="HandleDeleteChapter" />
                     }
                 </div>
             }
@@ -172,6 +179,15 @@ else
                    IsDanger="true"
                    OnConfirm="HandleDeleteConfirm"
                    OnCancel="HideDeleteConfirm" />
+
+    <ConfirmDialog IsVisible="@showDeleteChapterConfirm"
+                   Title="Bölümü Sil"
+                   Message="@($"Bölüm {chapterToDelete?.Number} silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.")"
+                   ConfirmText="Sil"
+                   CancelText="İptal"
+                   IsDanger="true"
+                   OnConfirm="HandleDeleteChapterConfirm"
+                   OnCancel="HideDeleteChapterConfirm" />
 }
 
 @code {
@@ -182,6 +198,8 @@ else
     private bool isLoading = true;
     private bool sortAscending = true;
     private bool showDeleteConfirm = false;
+    private bool showDeleteChapterConfirm = false;
+    private ChapterListItemDto? chapterToDelete;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -230,6 +248,32 @@ else
     {
         await ChapterService.ToggleReadStatusAsync(chapterId);
         await LoadSeriesAsync();
+    }
+
+    private async Task HandleDeleteChapter(int chapterId)
+    {
+        chapterToDelete = series?.Chapters.FirstOrDefault(c => c.Id == chapterId);
+        if (chapterToDelete != null)
+        {
+            showDeleteChapterConfirm = true;
+        }
+    }
+
+    private void HideDeleteChapterConfirm()
+    {
+        showDeleteChapterConfirm = false;
+        chapterToDelete = null;
+    }
+
+    private async Task HandleDeleteChapterConfirm()
+    {
+        if (chapterToDelete != null)
+        {
+            await ChapterService.DeleteChapterAsync(chapterToDelete.Id);
+            showDeleteChapterConfirm = false;
+            chapterToDelete = null;
+            await LoadSeriesAsync();
+        }
     }
 
     private void ShowDeleteConfirm()

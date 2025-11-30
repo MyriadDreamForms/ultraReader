@@ -3,6 +3,8 @@
 @rendermode InteractiveServer
 @inject IReaderService ReaderService
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 
 <PageTitle>@(_data?.SeriesTitle ?? "Reader") - Bölüm @ChapterNumber</PageTitle>
 
@@ -23,11 +25,17 @@ else if (_data == null)
 }
 else
 {
+    <!-- Progress Bar -->
+    <div class="reader-progress" style="width: @(_scrollProgress)%"></div>
+    
     <!-- Header -->
-    <header class="reader-header">
+    <header class="reader-header @(_headerVisible ? "" : "hidden")">
         <div class="reader-header-content">
             <a href="/series/@_data.SeriesSlug" class="reader-back-btn">
-                ← <span>Bölümler</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+                <span>Bölümler</span>
             </a>
             
             <div class="reader-title">
@@ -35,34 +43,84 @@ else
                 <span class="reader-title-chapter"> - Bölüm @_data.ChapterNumber@(!string.IsNullOrEmpty(_data.ChapterTitle) ? $": {_data.ChapterTitle}" : "")</span>
             </div>
             
-            <nav class="reader-nav">
-                @if (_data.PreviousChapterNumber.HasValue)
-                {
-                    <a href="/reader/@_data.SeriesSlug/@_data.PreviousChapterNumber" class="reader-nav-btn" title="Önceki Bölüm">
-                        ◀
-                    </a>
-                }
-                else
-                {
-                    <button class="reader-nav-btn" disabled title="İlk Bölüm">◀</button>
-                }
+            <div class="reader-header-actions">
+                <div class="reader-page-indicator">
+                    <span class="current-page">@_currentPage</span>
+                    <span class="page-separator">/</span>
+                    <span class="total-pages">@_data.Pages.Count</span>
+                </div>
                 
-                @if (_data.NextChapterNumber.HasValue)
-                {
-                    <a href="/reader/@_data.SeriesSlug/@_data.NextChapterNumber" class="reader-nav-btn" title="Sonraki Bölüm">
-                        ▶
-                    </a>
-                }
-                else
-                {
-                    <button class="reader-nav-btn" disabled title="Son Bölüm">▶</button>
-                }
-            </nav>
+                <nav class="reader-nav">
+                    @if (_data.PreviousChapterNumber.HasValue)
+                    {
+                        <a href="/reader/@_data.SeriesSlug/@_data.PreviousChapterNumber" class="reader-nav-btn" title="Önceki Bölüm (←)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                        </a>
+                    }
+                    else
+                    {
+                        <button class="reader-nav-btn" disabled title="İlk Bölüm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                        </button>
+                    }
+                    
+                    @if (_data.NextChapterNumber.HasValue)
+                    {
+                        <a href="/reader/@_data.SeriesSlug/@_data.NextChapterNumber" class="reader-nav-btn" title="Sonraki Bölüm (→)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                    }
+                    else
+                    {
+                        <button class="reader-nav-btn" disabled title="Son Bölüm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </button>
+                    }
+                </nav>
+                
+                <button class="reader-settings-btn" @onclick="ToggleSettings" title="Ayarlar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
     </header>
+    
+    <!-- Settings Panel -->
+    @if (_settingsOpen)
+    {
+        <div class="reader-settings-panel">
+            <div class="settings-group">
+                <label class="settings-label">Görüntü Genişliği</label>
+                <div class="settings-options">
+                    <button class="settings-option @(_imageWidth == "fit" ? "active" : "")" @onclick="@(() => SetImageWidth("fit"))">Sığdır</button>
+                    <button class="settings-option @(_imageWidth == "full" ? "active" : "")" @onclick="@(() => SetImageWidth("full"))">Tam</button>
+                    <button class="settings-option @(_imageWidth == "wide" ? "active" : "")" @onclick="@(() => SetImageWidth("wide"))">Geniş</button>
+                </div>
+            </div>
+            <div class="settings-group">
+                <label class="settings-label">Sayfa Aralığı</label>
+                <div class="settings-options">
+                    <button class="settings-option @(_pageGap == 0 ? "active" : "")" @onclick="@(() => SetPageGap(0))">Yok</button>
+                    <button class="settings-option @(_pageGap == 8 ? "active" : "")" @onclick="@(() => SetPageGap(8))">Az</button>
+                    <button class="settings-option @(_pageGap == 24 ? "active" : "")" @onclick="@(() => SetPageGap(24))">Normal</button>
+                </div>
+            </div>
+        </div>
+    }
 
     <!-- Content -->
-    <div class="reader-content">
+    <div class="reader-content @(_imageWidth)" style="--page-gap: @(_pageGap)px;" @onclick="ToggleHeaderVisibility">
         <div class="reader-pages">
             @if (_data.Pages.Count == 0)
             {
@@ -76,7 +134,7 @@ else
             {
                 @foreach (var readerPage in _data.Pages)
                 {
-                    <div class="reader-page">
+                    <div class="reader-page" id="page-@readerPage.PageNumber">
                         <ImagePlaceholder 
                             ImageUrl="@readerPage.ImageUrl" 
                             AltText="@($"Sayfa {readerPage.PageNumber}")"
@@ -86,6 +144,16 @@ else
             }
         </div>
     </div>
+    
+    <!-- Scroll to Top Button -->
+    @if (_scrollProgress > 20)
+    {
+        <button class="scroll-to-top" @onclick="ScrollToTop" title="Başa Dön">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="18 15 12 9 6 15"></polyline>
+            </svg>
+        </button>
+    }
 
     <!-- Footer Navigation -->
     <footer class="reader-footer">
@@ -93,28 +161,57 @@ else
             @if (_data.PreviousChapterNumber.HasValue)
             {
                 <a href="/reader/@_data.SeriesSlug/@_data.PreviousChapterNumber" class="reader-footer-btn">
-                    ← Önceki Bölüm
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                    Önceki Bölüm
                 </a>
             }
             else
             {
-                <span class="reader-footer-btn disabled">← Önceki Bölüm</span>
+                <span class="reader-footer-btn disabled">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                    Önceki Bölüm
+                </span>
             }
             
             <a href="/series/@_data.SeriesSlug" class="reader-footer-btn">
-                📚 Bölüm Listesi
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+                Bölüm Listesi
             </a>
             
             @if (_data.NextChapterNumber.HasValue)
             {
                 <a href="/reader/@_data.SeriesSlug/@_data.NextChapterNumber" class="reader-footer-btn primary">
-                    Sonraki Bölüm →
+                    Sonraki Bölüm
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
                 </a>
             }
             else
             {
-                <span class="reader-footer-btn disabled">Sonraki Bölüm →</span>
+                <span class="reader-footer-btn disabled">
+                    Sonraki Bölüm
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </span>
             }
+        </div>
+        
+        <!-- Chapter Progress -->
+        <div class="reader-chapter-progress">
+            <span>Bölüm @_data.ChapterNumber</span>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: @(_scrollProgress)%"></div>
+            </div>
+            <span>@(_scrollProgress)%</span>
         </div>
     </footer>
 }
@@ -125,10 +222,21 @@ else
 
     private ReaderDataDto? _data;
     private bool _loading = true;
+    private int _scrollProgress = 0;
+    private int _currentPage = 1;
+    private bool _headerVisible = true;
+    private bool _settingsOpen = false;
+    private string _imageWidth = "fit"; // fit, full, wide
+    private int _pageGap = 0; // 0, 8, 24
+    
+    private DotNetObjectReference<Reader>? _objRef;
+    private IJSObjectReference? _jsModule;
 
     protected override async Task OnParametersSetAsync()
     {
         _loading = true;
+        _scrollProgress = 0;
+        _currentPage = 1;
         StateHasChanged();
 
         try
@@ -150,5 +258,81 @@ else
         {
             _loading = false;
         }
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _objRef = DotNetObjectReference.Create(this);
+            _jsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/reader.js");
+            await _jsModule.InvokeVoidAsync("initReader", _objRef);
+        }
+    }
+    
+    [JSInvokable]
+    public void UpdateScrollProgress(int progress, int currentPage)
+    {
+        _scrollProgress = progress;
+        _currentPage = currentPage;
+        StateHasChanged();
+    }
+    
+    [JSInvokable]
+    public void NavigateToChapter(string direction)
+    {
+        if (_data == null) return;
+        
+        if (direction == "prev" && _data.PreviousChapterNumber.HasValue)
+        {
+            Navigation.NavigateTo($"/reader/{_data.SeriesSlug}/{_data.PreviousChapterNumber}");
+        }
+        else if (direction == "next" && _data.NextChapterNumber.HasValue)
+        {
+            Navigation.NavigateTo($"/reader/{_data.SeriesSlug}/{_data.NextChapterNumber}");
+        }
+    }
+    
+    private void ToggleHeaderVisibility()
+    {
+        _headerVisible = !_headerVisible;
+        _settingsOpen = false;
+    }
+    
+    private void ToggleSettings()
+    {
+        _settingsOpen = !_settingsOpen;
+    }
+    
+    private void SetImageWidth(string width)
+    {
+        _imageWidth = width;
+    }
+    
+    private void SetPageGap(int gap)
+    {
+        _pageGap = gap;
+    }
+    
+    private async Task ScrollToTop()
+    {
+        if (_jsModule != null)
+        {
+            await _jsModule.InvokeVoidAsync("scrollToTop");
+        }
+    }
+    
+    public async ValueTask DisposeAsync()
+    {
+        if (_jsModule != null)
+        {
+            try
+            {
+                await _jsModule.InvokeVoidAsync("disposeReader");
+                await _jsModule.DisposeAsync();
+            }
+            catch { }
+        }
+        _objRef?.Dispose();
     }
 }
